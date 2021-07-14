@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "824627822252",
+    "project_id": "task-bridge-f9e1f",
+    "storage_bucket": "task-bridge-f9e1f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:824627822252:android:1799c2af3407aa57976909",
+        "android_client_info": {
+          "package_name": "com.samandt.task_bridge"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "824627822252-tvuep05gm6p3hksg92s9u7ijk4nqdklv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.samandt.task_bridge",
+            "certificate_hash": "0f10294d3cc9e076a3f1a4414a3c227b05947edf"
+          }
+        },
+        {
+          "client_id": "824627822252-vm3vdhdlida1tcn6e34ou8e7moamdol6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5EugzaW4fN1kI795YVmmZygZl_-dxvT4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "824627822252-vm3vdhdlida1tcn6e34ou8e7moamdol6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
