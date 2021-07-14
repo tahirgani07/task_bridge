@@ -4,7 +4,9 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
+import 'package:task_bridge/models/user/user_model.dart';
 
 class ProfileDialog extends StatefulWidget {
   @override
@@ -13,16 +15,11 @@ class ProfileDialog extends StatefulWidget {
 
 class _ProfileDialogState extends State<ProfileDialog> {
   TextEditingController? _emailController;
-
-  TextEditingController? _panController = new TextEditingController();
-
   double circleRadius = 100.0;
-
-  bool imageLoaded = false;
 
   @override
   Widget build(BuildContext context) {
-    User? user = FirebaseAuth.instance.currentUser;
+    User? user = Provider.of<User?>(context);
     _emailController = new TextEditingController(text: user?.email ?? "");
     Size _size = MediaQuery.of(context).size;
     return AlertDialog(
@@ -71,22 +68,6 @@ class _ProfileDialogState extends State<ProfileDialog> {
                                   enabledBorder: _getBorder(),
                                 ),
                               ),
-                              // SizedBox(height: 20),
-                              // Text(
-                              //   "Pan CRN",
-                              //   style: TextStyle(fontWeight: FontWeight.w800),
-                              // ),
-                              // SizedBox(height: 10),
-                              // TextField(
-                              //   controller: _panController,
-                              //   decoration: InputDecoration(
-                              //     border: _getBorder(),
-                              //     enabledBorder: _getBorder(),
-                              //     labelText: "Enter Pan No.",
-                              //     floatingLabelBehavior:
-                              //         FloatingLabelBehavior.never,
-                              //   ),
-                              // ),
                               SizedBox(height: 20),
                               Container(
                                 width: double.infinity,
@@ -134,6 +115,8 @@ class _ProfileDialogState extends State<ProfileDialog> {
                           ),
                         ),
                       ),
+
+                      //// Profile Picture
                       Column(
                         children: [
                           Container(
@@ -141,9 +124,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
                             height: circleRadius,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: imageLoaded
-                                  ? Colors.transparent
-                                  : Colors.white,
+                              color: Colors.white,
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black26,
@@ -154,11 +135,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
                             ),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(100),
-                              onTap: () async {
-                                final PickedFile? file = await ImagePicker()
-                                    .getImage(source: ImageSource.gallery);
-                                if (file != null) {}
-                              },
+                              onTap: () async => await _updateProfilePic(user),
                               child: Padding(
                                 padding: const EdgeInsets.all(3.0),
                                 child: (user != null)
@@ -167,7 +144,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
                                             BorderRadius.circular(100),
                                         child: Image.network(
                                           user.photoURL ??
-                                              "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.i3A68YOaeKJvLzd9fe3C7AHaEo%26pid%3DApi&f=1",
+                                              UserModel.defaultPhotoUrl,
                                           loadingBuilder: (context, child,
                                               loadingProgress) {
                                             int expectedTotalBytes =
@@ -237,6 +214,49 @@ class _ProfileDialogState extends State<ProfileDialog> {
     );
   }
 
+  _showLoadingAlertDialog() {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        content: Container(
+          height: 200,
+          width: 200,
+          color: Colors.white,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: CircularProgressIndicator(),
+                height: 30,
+                width: 30,
+              ),
+              SizedBox(height: 10),
+              Text("Please wait...")
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  _updateProfilePic(User? user) async {
+    _showLoadingAlertDialog();
+    final PickedFile? file =
+        await ImagePicker().getImage(source: ImageSource.gallery);
+    if (file != null) {
+      bool success = await UserModel.updateProfilePhoto(File(file.path), user!);
+
+      if (success) {
+        Navigator.of(context).pop();
+        return;
+      }
+    }
+    Navigator.of(context).pop();
+  }
+
   _getBorder() {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
@@ -244,16 +264,5 @@ class _ProfileDialogState extends State<ProfileDialog> {
     );
   }
 
-  _activateFreelancerAccount() async {
-    // String _panNo = _panController?.text ?? "";
-    // if (_panNo == "") {
-    //   await Flushbar(
-    //     title: "Error",
-    //     message: "Pan No is required to activate Freelancer account!",
-    //     messageSize: 16,
-    //     duration: Duration(seconds: 3),
-    //   ).show(context);
-    //   return;
-    // }
-  }
+  _activateFreelancerAccount() async {}
 }

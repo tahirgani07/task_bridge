@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:task_bridge/screens/authentication/login.dart';
 import 'package:task_bridge/screens/screen_manager/screen_manager.dart';
-import 'package:task_bridge/screens/sign_up/sign_up.dart';
 
 class AuthManager extends StatelessWidget {
   @override
@@ -16,7 +16,7 @@ class AuthManager extends StatelessWidget {
           return ScreenManager();
         else if (snapshot.hasError)
           return Center(child: Text("Something went wrong"));
-        return SignUpScreen();
+        return LoginScreen();
       },
     );
   }

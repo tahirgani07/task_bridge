@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     Size _size = MediaQuery.of(context).size;
-    User? user = FirebaseAuth.instance.currentUser;
+    User? user = Provider.of<User?>(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 40, 20, 10),
       child: Column(
@@ -49,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 55,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.transparent,
+                          color: Colors.white,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black26,
@@ -61,8 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(100),
                           child: Image.network(
-                            user.photoURL ??
-                                "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.i3A68YOaeKJvLzd9fe3C7AHaEo%26pid%3DApi&f=1",
+                            user.photoURL ?? UserModel.defaultPhotoUrl,
                             loadingBuilder: (context, child, loadingProgress) {
                               int expectedTotalBytes =
                                   loadingProgress?.expectedTotalBytes ?? 1;

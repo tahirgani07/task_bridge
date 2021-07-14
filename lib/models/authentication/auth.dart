@@ -42,11 +42,13 @@ class AuthService with ChangeNotifier {
     }
   }
 
-  Future createUserWithEmailAndPassword(String email, String password) async {
+  Future createUserWithEmailAndPassword(
+      String email, String password, String name) async {
     setLoading(true);
     try {
       UserCredential userCredential = await firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
+      await userCredential.user!.updateDisplayName(name);
       setLoading(false);
       return userCredential.user;
     } on SocketException {
@@ -93,4 +95,7 @@ class AuthService with ChangeNotifier {
     _errorMessage = val;
     notifyListeners();
   }
+
+  Stream<User> get user =>
+      FirebaseAuth.instance.userChanges().map((event) => event!);
 }
