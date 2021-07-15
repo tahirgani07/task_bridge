@@ -1,6 +1,8 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
+import 'package:task_bridge/screens/select_profile_type/select_profile_type.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
@@ -129,7 +131,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             borderRadius: BorderRadius.circular(18),
                             onTap: () async {
                               await _auth!.signInWithGoogle();
-                              Navigator.of(context).pop();
+                              String errorMessage = _auth!.errorMessage;
+                              if (errorMessage.isNotEmpty) {
+                                Flushbar(
+                                  title: "Error",
+                                  message: errorMessage,
+                                  duration: Duration(seconds: 3),
+                                ).show(context);
+                                return;
+                              }
+
+                              // Successfully Signed in.
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => SelectProfileType(),
+                                ),
+                              );
                             },
                             child: Image.asset(
                               "assets/icons/google_icon.png",
@@ -178,7 +195,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (_formKey.currentState!.validate()) {
       await _auth!.createUserWithEmailAndPassword(
           _emailCt.text, _passwordCt.text, _nameCt.text);
-      Navigator.of(context).pop();
+      String errorMessage = _auth!.errorMessage;
+      if (errorMessage.isNotEmpty) {
+        Flushbar(
+          title: "Error",
+          message: errorMessage,
+          duration: Duration(seconds: 3),
+        ).show(context);
+        _passwordCt.clear();
+        return;
+      }
+      // Successfully Signed in.
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => SelectProfileType(),
+        ),
+      );
     }
   }
 

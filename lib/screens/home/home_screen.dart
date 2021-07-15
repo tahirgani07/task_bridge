@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_dialog.dart';
 

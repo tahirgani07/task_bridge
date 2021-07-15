@@ -7,7 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
+import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/user_model.dart';
+import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
+import 'package:task_bridge/screens/additional_info/additional_info.dart';
 
 class ProfileDialog extends StatefulWidget {
   @override
@@ -20,18 +23,22 @@ class _ProfileDialogState extends State<ProfileDialog> {
   TextEditingController? _nameCt;
   FocusNode _nameFc = new FocusNode();
   bool _showEditNameTextField = false;
+  bool isFreelancer = false;
 
   @override
   void initState() {
-    String name = Provider.of<User?>(context, listen: false)?.displayName ?? "";
+    User? tempUser = Provider.of<User?>(context, listen: false);
+    String name = tempUser!.displayName ?? "";
     _nameCt = new TextEditingController(text: name);
+    _emailController = new TextEditingController(text: tempUser.email ?? "");
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     User? user = Provider.of<User?>(context);
-    _emailController = new TextEditingController(text: user?.email ?? "");
+    AuthService _auth = Provider.of<AuthService>(context);
     Size _size = MediaQuery.of(context).size;
     return AlertDialog(
       elevation: 0,
@@ -87,18 +94,21 @@ class _ProfileDialogState extends State<ProfileDialog> {
                                       ),
                                     ),
                                     SizedBox(height: 20),
-                                    _getButton(
-                                      title: "Activate Freelancer account",
-                                      onPressed: () =>
-                                          _activateFreelancerAccount(),
-                                      color: Color(0xff4C7EFF),
-                                    ),
+                                    isFreelancer
+                                        ? Container()
+                                        : _getButton(
+                                            title:
+                                                "Activate Freelancer account",
+                                            onPressed: () =>
+                                                _activateFreelancerAccount(),
+                                            color: Color(0xff4C7EFF),
+                                          ),
                                     SizedBox(height: 20),
                                     _getButton(
                                         title: "Logout",
-                                        onPressed: () {
+                                        onPressed: () async {
                                           Navigator.of(context).pop();
-                                          AuthService().signOut();
+                                          await _auth.signOut();
                                         },
                                         color: Color(0xffFF4C4C)),
                                   ],
@@ -169,7 +179,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
                           SizedBox(height: 10),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 15),
-                            child: _getDisplayName(user!),
+                            child: _getDisplayName(user),
                           ),
                         ],
                       ),
@@ -184,40 +194,13 @@ class _ProfileDialogState extends State<ProfileDialog> {
     );
   }
 
-  _showLoadingAlertDialog() {
-    return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          // Using WillPopScope so that pressing backbutton does not dismiss the alertbox
-          return WillPopScope(
-            onWillPop: () => Future.value(false),
-            child: AlertDialog(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              content: Container(
-                height: 200,
-                width: 200,
-                color: Colors.white,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      child: CircularProgressIndicator(),
-                      height: 30,
-                      width: 30,
-                    ),
-                    SizedBox(height: 10),
-                    Text("Please wait...")
-                  ],
-                ),
-              ),
-            ),
-          );
-        });
+  _activateFreelancerAccount() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AdditionalInfo(),
+      ),
+    );
   }
-
-  _activateFreelancerAccount() async {}
 
   _updateDisplayName(User user) async {
     String newName = _nameCt?.text ?? "";
@@ -230,7 +213,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
     }
 
     String title = "Successfull", message = "Name updated";
-    _showLoadingAlertDialog();
+    LoadingDialog.showLoadingDialog(context);
     await user.updateDisplayName(newName).onError((error, stackTrace) {
       title = "Error";
       try {
@@ -241,7 +224,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
     });
     _updateShowEditNameTextField(false);
     // Get rid of the loading popup
-    Navigator.of(context).pop();
+    LoadingDialog.dismissLoadingDialog(context);
     Flushbar(
       title: "$title",
       message: "$message",
@@ -257,18 +240,13 @@ class _ProfileDialogState extends State<ProfileDialog> {
   }
 
   _updateProfilePic(User? user) async {
-    _showLoadingAlertDialog();
+    LoadingDialog.showLoadingDialog(context);
     final PickedFile? file =
         await ImagePicker().getImage(source: ImageSource.gallery);
     if (file != null) {
       bool success = await UserModel.updateProfilePhoto(File(file.path), user!);
-
-      if (success) {
-        Navigator.of(context).pop();
-        return;
-      }
     }
-    Navigator.of(context).pop();
+    LoadingDialog.dismissLoadingDialog(context);
   }
 
   _getButton({
@@ -363,33 +341,35 @@ class _ProfileDialogState extends State<ProfileDialog> {
     );
   }
 
-  _getDisplayName(User user) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          "${user.displayName ?? ''}",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(width: 10),
-        _showEditNameTextField
-            ? Container()
-            : Material(
-                color: Color(0xffDDDDDD),
-                borderRadius: BorderRadius.circular(5),
-                child: InkWell(
-                  onTap: () => _updateShowEditNameTextField(true),
-                  child: Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: Icon(Icons.edit_outlined, size: 18),
-                  ),
+  _getDisplayName(User? user) {
+    return user == null
+        ? Container()
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "${user.displayName}",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-      ],
-    );
+              SizedBox(width: 10),
+              _showEditNameTextField
+                  ? Container()
+                  : Material(
+                      color: Color(0xffDDDDDD),
+                      borderRadius: BorderRadius.circular(5),
+                      child: InkWell(
+                        onTap: () => _updateShowEditNameTextField(true),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          child: Icon(Icons.edit_outlined, size: 18),
+                        ),
+                      ),
+                    ),
+            ],
+          );
   }
 
   _getBorder() {

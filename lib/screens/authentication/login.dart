@@ -1,6 +1,8 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
+import 'package:task_bridge/others/my_colors.dart';
 import 'package:task_bridge/screens/authentication/sign_up.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -54,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: 36,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1,
-                            color: Color(0xff192A4D),
+                            color: MyColor.headingText,
                           ),
                         ),
                         SizedBox(height: 40),
@@ -109,6 +111,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(18),
                               onTap: () async {
                                 await _auth!.signInWithGoogle();
+                                String errorMessage = _auth!.errorMessage;
+                                if (errorMessage.isNotEmpty) {
+                                  Flushbar(
+                                    title: "Error",
+                                    message: errorMessage,
+                                    duration: Duration(seconds: 3),
+                                  ).show(context);
+                                }
                               },
                               child: Image.asset(
                                 "assets/icons/google_icon.png",
@@ -158,6 +168,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       await _auth!
           .loginUserWithEmailAndPassword(_emailCt.text, _passwordCt.text);
+      String errorMessage = _auth!.errorMessage;
+      if (errorMessage.isNotEmpty) {
+        Flushbar(
+          title: "Error",
+          message: errorMessage,
+          duration: Duration(seconds: 3),
+        ).show(context);
+        _passwordCt.clear();
+      }
     }
   }
 
