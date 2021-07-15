@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
-import 'package:task_bridge/screens/authentication/auth_manager.dart';
 import 'package:task_bridge/screens/authentication/sign_up.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -165,6 +163,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _emailValidator(String? val) {
     val = val!.trim();
+    val = val.trimLeft();
+    val = val.trimRight();
     if (val.isEmpty) return "Please enter an email";
 
     const pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';

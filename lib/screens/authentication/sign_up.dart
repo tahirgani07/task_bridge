@@ -1,10 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
-import 'package:task_bridge/screens/authentication/auth_manager.dart';
-import 'package:task_bridge/screens/authentication/login.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
@@ -188,6 +184,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   String? _emailValidator(String? val) {
     val = val!.trim();
+    val = val.trimLeft();
+    val = val.trimRight();
     if (val.isEmpty) return "Please enter an email";
 
     const pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
@@ -209,6 +207,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   String? _nameValidator(String? val) {
     val = val!.trim();
+    val = val.trimLeft();
+    val = val.trimRight();
     if (val.isEmpty) return "Please enter your name";
     return null;
   }
