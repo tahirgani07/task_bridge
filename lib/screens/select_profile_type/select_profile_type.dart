@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_bridge/others/my_colors.dart';
 import 'package:task_bridge/screens/additional_info/additional_info.dart';
-import 'package:task_bridge/screens/screen_manager/screen_manager.dart';
+import 'package:task_bridge/screens/authentication/auth_manager.dart';
 
 enum ProfileType { NORMAL, FREELANCER }
 
@@ -95,7 +95,7 @@ class _SelectProfileTypeState extends State<SelectProfileType> {
     if (_selectedType == ProfileType.NORMAL) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => ScreenManager(),
+          builder: (context) => AuthManager(),
         ),
       );
       return;

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
 import 'package:task_bridge/others/my_colors.dart';
 import 'package:task_bridge/screens/authentication/sign_up.dart';
+import 'package:task_bridge/screens/select_profile_type/select_profile_type.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

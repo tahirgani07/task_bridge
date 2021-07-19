@@ -9,7 +9,7 @@ class _AdditionalInfoState extends State<AdditionalInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Text("HELLO"),
+      body: Center(child: Text("ADDITIONAL INFO")),
     );
   }
 }

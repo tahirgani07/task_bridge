@@ -38,6 +38,7 @@ class AuthService with ChangeNotifier {
       setLoading(false);
 
       await _db.addUserToCollectionIfNew(userCredential.user?.uid ?? "test");
+
       return userCredential.user;
     } on SocketException {
       setLoading(false);
