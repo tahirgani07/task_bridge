@@ -79,7 +79,6 @@ class AuthService with ChangeNotifier {
           .signInWithEmailAndPassword(email: email, password: password);
       setLoading(false);
 
-      await _db.addUserToCollectionIfNew(userCredential.user?.uid ?? "test");
       return userCredential.user;
     } on SocketException {
       setLoading(false);
@@ -97,6 +96,32 @@ class AuthService with ChangeNotifier {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future phoneVerification(String phoneNo) async {
+    _errorMessage = "";
+    PhoneAuthCredential? phoneAuthCredential;
+    String? verificationId;
+    await firebaseAuth.verifyPhoneNumber(
+      phoneNumber: phoneNo,
+      verificationCompleted: (PhoneAuthCredential credential) {
+        phoneAuthCredential = credential;
+      },
+      verificationFailed: (err) {
+        setMessage(err.message ?? "");
+        print(err);
+      },
+      codeSent: (vID, _) {
+        verificationId = vID;
+      },
+      codeAutoRetrievalTimeout: (_) {},
+    );
+
+    if (phoneAuthCredential != null) return [true, null];
+    return [
+      false,
+      verificationId,
+    ];
   }
 
   void setLoading(bool val) {

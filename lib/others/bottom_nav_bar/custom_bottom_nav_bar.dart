@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:task_bridge/models/bottom_nav_bar/bottom_nav_bar_model.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
-  const CustomBottomNavBar({Key? key}) : super(key: key);
+  final bool isFreelancer;
+  const CustomBottomNavBar({this.isFreelancer: false});
 
   @override
   _CustomBottomNavBarState createState() => _CustomBottomNavBarState();
@@ -29,6 +30,14 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          widget.isFreelancer
+              ? _getNavBarIconItem(
+                  icon: Icons.dashboard,
+                  onPressed: () => _bottomNavBarModel.changeScreen(-1),
+                  index: -1,
+                  size: 30,
+                )
+              : Container(),
           _getNavBarImageItem(
             width: 25,
             height: 25,
@@ -87,6 +96,10 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     double? width,
     int? index,
   }) {
+    bool setColor = false;
+    // If the user is not a freelancer then at the start the current index will always be -1.
+    if (!widget.isFreelancer && index == 0 && currentIndex == -1)
+      setColor = true;
     return Expanded(
       child: TextButton(
         onPressed: onPressed,
@@ -95,7 +108,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
           height: height,
           child: SvgPicture.asset(
             name,
-            color: currentIndex == index ? selectedColor : normalColor,
+            color: (setColor || currentIndex == index)
+                ? selectedColor
+                : normalColor,
           ),
         ),
       ),

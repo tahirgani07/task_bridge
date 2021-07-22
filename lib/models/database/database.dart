@@ -25,11 +25,23 @@ class Database {
     return false;
   }
 
-  Future isFreelancer(String uid) async {
-    bool result = false;
+  Future switchUserToFreelancer(String uid) async {
     DocumentSnapshot snapshot = await db.collection("users").doc(uid).get();
-    if (snapshot.exists) result = snapshot.get("freelancer");
-    print(result);
-    return result;
+    if (snapshot.exists) {
+      await db.collection("users").doc(uid).update({
+        "freelancer": true,
+      });
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> checkIfFreelancer(String uid) async {
+    DocumentSnapshot snapshot = await db.collection("users").doc(uid).get();
+    if (snapshot.exists) {
+      bool? val = snapshot.get("freelancer");
+      return val ?? false;
+    }
+    return false;
   }
 }

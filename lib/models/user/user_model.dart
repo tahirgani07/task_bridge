@@ -22,4 +22,6 @@ class UserModel {
         .onError((error, stackTrace) => success = false);
     return success;
   }
+
+  static bool isFreelancer = false;
 }

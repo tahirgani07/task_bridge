@@ -23,7 +23,6 @@ class _ProfileDialogState extends State<ProfileDialog> {
   TextEditingController? _nameCt;
   FocusNode _nameFc = new FocusNode();
   bool _showEditNameTextField = false;
-  bool isFreelancer = false;
 
   @override
   void initState() {
@@ -93,8 +92,10 @@ class _ProfileDialogState extends State<ProfileDialog> {
                                         enabledBorder: _getBorder(),
                                       ),
                                     ),
-                                    SizedBox(height: 20),
-                                    isFreelancer
+                                    UserModel.isFreelancer
+                                        ? Container()
+                                        : SizedBox(height: 20),
+                                    UserModel.isFreelancer
                                         ? Container()
                                         : _getButton(
                                             title:
@@ -145,6 +146,14 @@ class _ProfileDialogState extends State<ProfileDialog> {
                                         child: Image.network(
                                           user.photoURL ??
                                               UserModel.defaultPhotoUrl,
+                                          errorBuilder:
+                                              (context, child, error) {
+                                            Flushbar(
+                                              title: "Something went wrong",
+                                              message: "${error.toString()}",
+                                            ).show(context);
+                                            return Text("?");
+                                          },
                                           loadingBuilder: (context, child,
                                               loadingProgress) {
                                             int expectedTotalBytes =

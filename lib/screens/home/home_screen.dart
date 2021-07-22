@@ -1,3 +1,4 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -64,6 +65,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(100),
                           child: Image.network(
                             user.photoURL ?? UserModel.defaultPhotoUrl,
+                            errorBuilder: (context, child, error) {
+                              Flushbar(
+                                title: "Something went wrong",
+                                message: "${error.toString()}",
+                              ).show(context);
+                              return Text("?");
+                            },
                             loadingBuilder: (context, child, loadingProgress) {
                               int expectedTotalBytes =
                                   loadingProgress?.expectedTotalBytes ?? 1;
