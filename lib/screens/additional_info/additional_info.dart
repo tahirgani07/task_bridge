@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
-import 'package:task_bridge/screens/additional_info/otp_screen.dart';
+import 'package:task_bridge/others/my_colors.dart';
+import 'package:task_bridge/screens/additional_info/otp_dialog.dart';
 
 class AdditionalInfo extends StatefulWidget {
   @override
@@ -17,314 +21,395 @@ class _AdditionalInfoState extends State<AdditionalInfo> {
   String? valueChoose2;
   DateTime selectedDate = DateTime.now();
 
-  _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1960),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null && picked != selectedDate)
-      setState(() {
-        selectedDate = picked;
-      });
-  }
+  double _spaceBetweenFields = 20;
 
-  int selectedRadio = 0;
+  int _curState = -1;
+  int _curDistrict = -1;
+
+  final _formKey = GlobalKey<FormState>();
+
+  TextEditingController _phoneCtl = TextEditingController();
+  TextEditingController _dobCtl = TextEditingController();
+  DateTime _today = DateTime.now();
+
+  TextEditingController _maleCtl = TextEditingController(text: "Male");
+  TextEditingController _femaleCtl = TextEditingController(text: "Female");
+  TextEditingController _othersCtl = TextEditingController(text: "Others");
+
+  String _gender = "";
 
   @override
   Widget build(BuildContext context) {
     _auth = Provider.of<AuthService>(context);
     _user = Provider.of<User?>(context);
-    Size screensize = MediaQuery.of(context).size;
 
-    //valueChoose=listItem.elementAt(0) ;
-    return Scaffold(
-      body: SingleChildScrollView(
-          child: Container(
-              height: screensize.height,
-              width: screensize.width,
-              alignment: Alignment.bottomCenter,
-              padding: EdgeInsets.all(8),
-              child: Material(
-                elevation: 10,
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  height: screensize.height * 0.9,
-                  width: screensize.width,
-                  padding: EdgeInsets.all(30),
-                  child: SingleChildScrollView(
-                    child: Form(
-                      child: Column(
-                        //crossAxisAlignment: CrossAxisAlignment.center ,
-                        children: <Widget>[
-                          Text(
-                            'Worker\'s Account',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Poppins',
-                                fontSize: 26.0),
-                          ),
-                          SizedBox(
-                            height: 25.0,
-                          ),
-                          TextField(
-                            decoration: InputDecoration(
-                                prefixIcon: Icon(Icons.phone),
-                                labelText: 'Phone number',
-                                labelStyle: TextStyle(
-                                    fontFamily: 'Poppins', fontSize: 20.0)),
-                          ),
-                          SizedBox(
-                            height: 25.0,
-                          ),
-
-                          Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Date of birth:',
-                                  style: TextStyle(
-                                      fontFamily: 'Poppins', fontSize: 18.0))),
-
-                          Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 1.0,
-                                  color: Colors.grey,
-                                ),
-                                borderRadius: BorderRadius.circular(10)),
-                            padding: EdgeInsets.all(12.0),
-                            child: Row(
-                              //crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                //TextField(decoration: InputDecoration(slabelText: _selectedDate,labelStyle: TextStyle(fontFamily:'Poppins',fontSize: 20.0)),),
-                                Icon(Icons.calendar_today),
-                                SizedBox(
-                                  width: 25.0,
-                                ),
-                                InkWell(
-                                  child: Text(
-                                    "${selectedDate.toLocal()}".split(' ')[0],
-                                    style: TextStyle(
-                                        backgroundColor: Colors.grey[200],
-                                        fontFamily: 'Poppins',
-                                        fontSize: 18.0),
-                                  ),
-                                  onTap: () => _selectDate(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            height: 25.0,
-                          ),
-                          Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Select gender :',
-                                style: TextStyle(
-                                    fontFamily: 'Poppins', fontSize: 18.0),
-                                textAlign: TextAlign.start,
-                              )),
-                          //TextField(decoration: InputDecoration(prefixIcon:Icon( Icons.tag),labelText: 'Tags',labelStyle: TextStyle(fontFamily:'Poppins',fontSize: 20.0)),),
-                          Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 1.0,
-                                  color: Colors.grey,
-                                ),
-                                borderRadius: BorderRadius.circular(10)),
-                            padding: EdgeInsets.all(2.0),
-                            child: Row(
-                              children: [
-                                Radio(
-                                  value: 1,
-                                  groupValue: selectedRadio,
-                                  activeColor: Colors.blue,
-                                  onChanged: (val) {
-                                    setState(() {
-                                      selectedRadio = val as int;
-                                    });
-
-                                    print("male $val");
-                                  },
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Text('Male',
-                                    style: TextStyle(
-                                        fontFamily: 'Poppins', fontSize: 16.0))
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            height: 12.0,
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 1.0,
-                                  color: Colors.grey,
-                                ),
-                                borderRadius: BorderRadius.circular(10)),
-                            padding: EdgeInsets.all(2.0),
-                            child: Row(
-                              children: [
-                                Radio(
-                                  value: 2,
-                                  groupValue: selectedRadio,
-                                  activeColor: Colors.blue,
-                                  onChanged: (val) {
-                                    print("female $val");
-                                    setState(() {
-                                      selectedRadio = val as int;
-                                    });
-                                  },
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Text('female',
-                                    style: TextStyle(
-                                        fontFamily: 'Poppins', fontSize: 16.0))
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            height: 12.0,
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 1.0,
-                                  color: Colors.grey,
-                                ),
-                                borderRadius: BorderRadius.circular(10)),
-                            padding: EdgeInsets.all(2.0),
-                            child: Row(
-                              children: [
-                                Radio(
-                                  value: 3,
-                                  groupValue: selectedRadio,
-                                  activeColor: Colors.blue,
-                                  onChanged: (val) {
-                                    print("others $val");
-                                    setState(() {
-                                      selectedRadio = val as int;
-                                    });
-                                  },
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Text('Others',
-                                    style: TextStyle(
-                                        fontFamily: 'Poppins', fontSize: 16.0))
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(
-                            height: 25.0,
-                          ),
-                          Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Select Your Work location :',
-                                style: TextStyle(
-                                    fontFamily: 'Poppins', fontSize: 18.0),
-                                textAlign: TextAlign.start,
-                              )),
-
-                          SizedBox(
-                            height: 10.0,
-                          ),
-                          //TextField(decoration: InputDecoration(prefixIcon:Icon( Icons.location_on),labelText: 'location',labelStyle: TextStyle(fontFamily:'Poppins',fontSize: 20.0)),),
-
-                          DropdownButton<String>(
-                            isExpanded: true,
-                            hint: Text('Select State'),
-                            value: valueChoose1,
-                            onChanged: (newValue) {
-                              setState(() {
-                                this.valueChoose1 = newValue;
-                              });
-                              print(newValue);
-                            },
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontFamily: 'Poppins',
-                                fontSize: 18.0),
-                            items: listItem.map((valueItem) {
-                              return DropdownMenuItem<String>(
-                                value: valueItem,
-                                child: Text(valueItem),
-                              );
-                            }).toList(),
-                          ),
-                          SizedBox(
-                            height: 10.0,
-                          ),
-                          DropdownButton<String>(
-                            isExpanded: true,
-                            hint: Text('Select City '),
-                            value: valueChoose2,
-                            onChanged: (newValue) {
-                              setState(() {
-                                this.valueChoose2 = newValue;
-                              });
-                              print(newValue);
-                            },
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontFamily: 'Poppins',
-                                fontSize: 18.0),
-                            items: listItem.map((valueItem) {
-                              return DropdownMenuItem<String>(
-                                value: valueItem,
-                                child: Text(valueItem),
-                              );
-                            }).toList(),
-                          ),
-                          SizedBox(
-                            height: 25.0,
-                          ),
-                          TextButton(
-                            onPressed: _proceedAndSendOTP,
-                            child: Text(
-                              "Next >",
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () {
+          FocusScopeNode currentFocus = FocusScope.of(context);
+          if (!currentFocus.hasPrimaryFocus) {
+            currentFocus.unfocus();
+          }
+        },
+        child: Scaffold(
+          floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.done, size: 30),
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                _proceedAndSendOTP();
+              }
+            },
+          ),
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  SizedBox(height: 20),
+                  // Title bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Back Button
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Icon(Icons.arrow_back_ios_new_rounded),
+                      ),
+                      Text(
+                        "Additional Info",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w500,
+                          color: MyColor.headingText,
+                        ),
+                      ),
+                      // This is just to center align the title.
+                      TextButton(
+                        onPressed: null,
+                        child: Text(""),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Phone No",
                               style: TextStyle(
-                                color: Color(0xff0165FF),
                                 fontSize: 16,
-                                fontWeight: FontWeight.w400,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
-                        ],
+                            // Phone Number TextField
+                            TextFormField(
+                              validator: (val) => _validatePhoneNo(val),
+                              controller: _phoneCtl,
+                              decoration: _getInputDecoration(
+                                  hintText: "Enter your phone number"),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              maxLength: 10,
+                            ),
+                            Text(
+                              "Note: OTP will be sent on this number.",
+                              style: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+
+                            SizedBox(height: _spaceBetweenFields),
+
+                            Text(
+                              "State",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            // States DropDownField.
+                            FutureBuilder(
+                              future: _getStatesData(),
+                              builder: (context, snapshot) {
+                                List states = [
+                                  {
+                                    "state_id": -1,
+                                    "state_name": "Select a state",
+                                  }
+                                ];
+                                if (snapshot.hasData) {
+                                  dynamic data = snapshot.data;
+                                  states.addAll(data);
+                                }
+
+                                return DropdownButtonFormField<int>(
+                                  validator: (val) {
+                                    if (val! <= 0)
+                                      return "Please select your state.";
+                                  },
+                                  onChanged: (newVal) {
+                                    setState(() {
+                                      _curState = newVal!;
+                                      // We have to reset current district so that there is no value in it after state changes
+                                      _curDistrict = -1;
+                                    });
+                                  },
+                                  decoration: _getInputDecoration(),
+                                  value: _curState,
+                                  items: states.map((state) {
+                                    return DropdownMenuItem<int>(
+                                      child: Text("${state['state_name']}"),
+                                      value: state["state_id"],
+                                    );
+                                  }).toList(),
+                                );
+                              },
+                            ),
+
+                            SizedBox(height: _spaceBetweenFields),
+
+                            Text(
+                              "City",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            // City DropDownField
+                            FutureBuilder(
+                              future: _getDistrictsData(_curState),
+                              builder: (context, snapshot) {
+                                List districts = [
+                                  {
+                                    "district_id": -1,
+                                    "district_name": "Select a district",
+                                  }
+                                ];
+                                if (snapshot.hasData) {
+                                  dynamic data = snapshot.data;
+                                  districts.addAll(data);
+                                }
+
+                                return DropdownButtonFormField<int>(
+                                  validator: (val) {
+                                    if (val! <= 0)
+                                      return "Please select your city.";
+                                  },
+                                  onChanged: (newVal) {
+                                    setState(() {
+                                      _curDistrict = newVal!;
+                                    });
+                                  },
+                                  decoration: _getInputDecoration(),
+                                  value: _curDistrict,
+                                  items: districts.map((district) {
+                                    return DropdownMenuItem<int>(
+                                      child:
+                                          Text("${district['district_name']}"),
+                                      value: district["district_id"],
+                                    );
+                                  }).toList(),
+                                );
+                              },
+                            ),
+
+                            SizedBox(height: _spaceBetweenFields),
+
+                            Text(
+                              "DOB",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            // DOB Field
+                            TextFormField(
+                              validator: (val) {
+                                if (val!.isEmpty)
+                                  return "Please enter your DOB";
+                              },
+                              controller: _dobCtl,
+                              readOnly: true,
+                              decoration: _getInputDecoration(
+                                hintText: "Enter your DOB",
+                                calenderIcon: true,
+                              ),
+                              onTap: () async {
+                                DateTime? date = await showDatePicker(
+                                  context: context,
+                                  initialDate: _today,
+                                  firstDate: DateTime(_today.year - 100),
+                                  lastDate: _today,
+                                );
+                                if (date != null) {
+                                  _dobCtl.text =
+                                      "${date.day}/${date.month}/${date.year}";
+                                }
+                              },
+                            ),
+
+                            SizedBox(height: _spaceBetweenFields),
+
+                            Text(
+                              "Gender",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: TextFormField(
+                                    validator: (val) {
+                                      if (_gender.isEmpty) return "";
+                                    },
+                                    controller: _maleCtl,
+                                    style: TextStyle(
+                                      color: _maleCtl.text == _gender
+                                          ? Colors.white
+                                          : null,
+                                    ),
+                                    readOnly: true,
+                                    decoration: _getInputDecoration(
+                                      setBgColor: _maleCtl.text == _gender,
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        _gender = "Male";
+                                      });
+                                    },
+                                  ),
+                                ),
+                                SizedBox(width: 20),
+                                Flexible(
+                                  child: TextFormField(
+                                    validator: (val) {
+                                      if (_gender.isEmpty) return "";
+                                    },
+                                    controller: _femaleCtl,
+                                    style: TextStyle(
+                                      color: _femaleCtl.text == _gender
+                                          ? Colors.white
+                                          : null,
+                                    ),
+                                    readOnly: true,
+                                    decoration: _getInputDecoration(
+                                      setBgColor: _femaleCtl.text == _gender,
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        _gender = "Female";
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 10),
+                            TextFormField(
+                              validator: (val) {
+                                if (_gender.isEmpty)
+                                  return "Please select your gender.";
+                              },
+                              controller: _othersCtl,
+                              style: TextStyle(
+                                color: _othersCtl.text == _gender
+                                    ? Colors.white
+                                    : null,
+                              ),
+                              readOnly: true,
+                              decoration: _getInputDecoration(
+                                setBgColor: _othersCtl.text == _gender,
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  _gender = "Others";
+                                });
+                              },
+                            ),
+                            SizedBox(height: 80),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ))),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
   _proceedAndSendOTP() async {
     _auth!.firebaseAuth.verifyPhoneNumber(
-      phoneNumber: "+918291390570",
+      phoneNumber: "+91${_phoneCtl.text}",
       verificationCompleted: (PhoneAuthCredential credential) {
         print("VERIFICATION COMPLETE");
       },
       verificationFailed: (err) {
         print(err);
       },
-      codeSent: (vID, _) {
+      codeSent: (vID, _) async {
         print("VERIFICATION ID : " + vID);
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => OtpScreen(vID)));
+        await showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (context) {
+            return OtpDialog(vID);
+          },
+        );
       },
       codeAutoRetrievalTimeout: (_) {},
     );
+  }
+
+  Future<List> _getStatesData() async {
+    final String response =
+        await rootBundle.loadString("assets/json/states.json");
+    final data = await json.decode(response);
+    return data["states"];
+  }
+
+  Future _getDistrictsData(int stateId) async {
+    if (stateId <= 0) return [];
+    final String response =
+        await rootBundle.loadString("assets/json/districts.json");
+    final data = await json.decode(response);
+    return (data["districts"][stateId - 1]["districts"]);
+  }
+
+  _getInputDecoration(
+      {String hintText: "", bool setBgColor: false, bool calenderIcon: false}) {
+    return InputDecoration(
+      fillColor: setBgColor ? MyColor.primaryColor : null,
+      filled: setBgColor,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey[350]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey[350]!),
+      ),
+      hintText: hintText,
+      suffixIcon: !calenderIcon ? null : Icon(Icons.calendar_today),
+      counterText: "",
+    );
+  }
+
+  _validatePhoneNo(String? val) {
+    if (val == null || val.isEmpty) return "Please enter your phone number";
+    if (val.trim().length < 10) return "Please enter a valid phone number";
   }
 }

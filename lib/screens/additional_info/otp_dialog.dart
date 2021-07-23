@@ -9,69 +9,62 @@ import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
 import 'package:task_bridge/others/my_colors.dart';
 import 'package:task_bridge/screens/authentication/auth_manager.dart';
 
-class OtpScreen extends StatefulWidget {
+class OtpDialog extends StatefulWidget {
   final String verificationId;
-  OtpScreen(this.verificationId);
+  OtpDialog(this.verificationId);
 
   @override
-  _OtpScreenState createState() => _OtpScreenState();
+  _OtpDialogState createState() => _OtpDialogState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
+class _OtpDialogState extends State<OtpDialog> {
   TextEditingController _otpCtl = TextEditingController();
   User? _user;
 
   @override
   Widget build(BuildContext context) {
     _user = Provider.of<User?>(context);
-    return SafeArea(
-      child: Scaffold(
-        body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-          child: Column(
-            children: [
-              Text(
-                "Enter OTP",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: MyColor.headingText,
-                ),
-              ),
-              SizedBox(height: 30),
-              TextField(
-                controller: _otpCtl,
-                maxLength: 6,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  counterText: "",
-                ),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 40,
-                  letterSpacing: 20,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-              ),
-              SizedBox(height: 20),
-              MaterialButton(
-                height: 55,
-                minWidth: double.infinity,
-                color: MyColor.primaryColor,
-                onPressed: _verifyAndLink,
-                child: Text(
-                  "Proceed",
-                  style: TextStyle(
-                    fontSize: 22,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+    return AlertDialog(
+      scrollable: true,
+      title: Text(
+        "Enter OTP",
+        style: TextStyle(
+          color: MyColor.headingText,
+        ),
+      ),
+      content: Column(
+        children: [
+          TextField(
+            controller: _otpCtl,
+            maxLength: 6,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              counterText: "",
+            ),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 30,
+              letterSpacing: 15,
+            ),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
             ],
           ),
-        ),
+          SizedBox(height: 20),
+          MaterialButton(
+            height: 55,
+            minWidth: double.infinity,
+            color: MyColor.primaryColor,
+            onPressed: _verifyAndLink,
+            child: Text(
+              "Proceed",
+              style: TextStyle(
+                fontSize: 22,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
