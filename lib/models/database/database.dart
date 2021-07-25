@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Database {
   // Making this class a singleton.
@@ -13,23 +14,17 @@ class Database {
 
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  Future addUserToCollectionIfNew(String uid) async {
-    DocumentSnapshot snapshot = await db.collection("users").doc(uid).get();
+  Future addUserToCollectionIfNew(User user) async {
+    DocumentSnapshot snapshot =
+        await db.collection("users").doc(user.uid).get();
     if (!snapshot.exists) {
       print("New User!");
-      await db.collection("users").doc(uid).set({
+      await db.collection("users").doc(user.uid).set({
         "freelancer": false,
-      });
-      return true;
-    }
-    return false;
-  }
-
-  Future switchUserToFreelancer(String uid) async {
-    DocumentSnapshot snapshot = await db.collection("users").doc(uid).get();
-    if (snapshot.exists) {
-      await db.collection("users").doc(uid).update({
-        "freelancer": true,
+        "id": user.uid,
+        "name": user.displayName,
+        "photoUrl": user.photoURL,
+        "email": user.email,
       });
       return true;
     }
@@ -43,5 +38,102 @@ class Database {
       return val ?? false;
     }
     return false;
+  }
+
+  Future<bool> addAdditionalInfoAndSwitchToFreelancer(
+    String uid, {
+    required String state,
+    required String city,
+    required DateTime dob,
+    required String gender,
+  }) async {
+    bool isSuccess = true;
+    await db.collection("users").doc(uid).update({
+      "freelancer": true,
+      "state": state,
+      "city": city,
+      "dob": dob,
+      "gender": gender,
+    }).onError((error, stackTrace) {
+      print(error.toString());
+      isSuccess = false;
+    });
+    return isSuccess;
+  }
+
+  sendMessage({
+    required String combinedUid,
+    required String senderUid,
+    required String message,
+  }) async {
+    await db
+        .collection("all-chats")
+        .doc(combinedUid)
+        .collection("chats")
+        .doc(Timestamp.now().millisecondsSinceEpoch.toString())
+        .set({
+      "uid": senderUid,
+      "message": message,
+      "timestamp": Timestamp.now(),
+    });
+  }
+
+  Future checkIfUserIsAddedToMsgList({
+    required String uid1,
+    required String name1,
+    required String email1,
+    required String photoUrl1,
+    required String uid2,
+    required String name2,
+    required String email2,
+    required String photoUrl2,
+  }) async {
+    try {
+      // Checking if user2 exists in user1
+      DocumentSnapshot snap1 = await db
+          .collection("users")
+          .doc(uid1)
+          .collection("chats")
+          .doc(uid2)
+          .get();
+
+      if (!snap1.exists) {
+        await db
+            .collection("users")
+            .doc(uid1)
+            .collection("chats")
+            .doc(uid2)
+            .set({
+          "uid": uid2,
+          "photoUrl": photoUrl2,
+          "email": email2,
+          "name": name2,
+        });
+      }
+
+      // Checking if user1 exists in user2
+      DocumentSnapshot snap2 = await db
+          .collection("users")
+          .doc(uid2)
+          .collection("chats")
+          .doc(uid1)
+          .get();
+
+      if (!snap2.exists) {
+        await db
+            .collection("users")
+            .doc(uid2)
+            .collection("chats")
+            .doc(uid1)
+            .set({
+          "uid": uid1,
+          "photoUrl": photoUrl1,
+          "email": email1,
+          "name": name1,
+        });
+      }
+    } catch (e) {
+      print(e.toString());
+    }
   }
 }

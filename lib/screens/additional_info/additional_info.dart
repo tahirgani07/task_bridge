@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:another_flushbar/flushbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,21 +17,19 @@ class AdditionalInfo extends StatefulWidget {
 class _AdditionalInfoState extends State<AdditionalInfo> {
   AuthService? _auth;
   User? _user;
-  List listItem = ["a", "b", "c", "d"];
-  String? valueChoose1;
-  String? valueChoose2;
-  DateTime selectedDate = DateTime.now();
 
   double _spaceBetweenFields = 20;
 
   int _curState = -1;
   int _curDistrict = -1;
+  String _selectedState = "", _selectedDistrict = "";
 
   final _formKey = GlobalKey<FormState>();
 
   TextEditingController _phoneCtl = TextEditingController();
   TextEditingController _dobCtl = TextEditingController();
   DateTime _today = DateTime.now();
+  DateTime? _selectedDate;
 
   TextEditingController _maleCtl = TextEditingController(text: "Male");
   TextEditingController _femaleCtl = TextEditingController(text: "Female");
@@ -160,6 +159,11 @@ class _AdditionalInfoState extends State<AdditionalInfo> {
                                       // We have to reset current district so that there is no value in it after state changes
                                       _curDistrict = -1;
                                     });
+                                    if (_curState > 0)
+                                      _selectedState =
+                                          states[_curState]["state_name"];
+                                    else
+                                      _selectedState = "";
                                   },
                                   decoration: _getInputDecoration(),
                                   value: _curState,
@@ -189,7 +193,7 @@ class _AdditionalInfoState extends State<AdditionalInfo> {
                                 List districts = [
                                   {
                                     "district_id": -1,
-                                    "district_name": "Select a district",
+                                    "district_name": "Select a city",
                                   }
                                 ];
                                 if (snapshot.hasData) {
@@ -206,6 +210,17 @@ class _AdditionalInfoState extends State<AdditionalInfo> {
                                     setState(() {
                                       _curDistrict = newVal!;
                                     });
+                                    if (_curDistrict >= 0) {
+                                      districts.forEach((district) {
+                                        if (district["district_id"] ==
+                                            _curDistrict) {
+                                          _selectedDistrict =
+                                              district["district_name"];
+                                          return;
+                                        }
+                                      });
+                                    } else
+                                      _selectedDistrict = "";
                                   },
                                   decoration: _getInputDecoration(),
                                   value: _curDistrict,
@@ -249,6 +264,7 @@ class _AdditionalInfoState extends State<AdditionalInfo> {
                                   lastDate: _today,
                                 );
                                 if (date != null) {
+                                  _selectedDate = date;
                                   _dobCtl.text =
                                       "${date.day}/${date.month}/${date.year}";
                                 }
@@ -361,12 +377,22 @@ class _AdditionalInfoState extends State<AdditionalInfo> {
         print(err);
       },
       codeSent: (vID, _) async {
-        print("VERIFICATION ID : " + vID);
+        Flushbar(
+          message: "OTP sent successfully",
+          duration: Duration(seconds: 3),
+        ).show(context);
         await showDialog(
           barrierDismissible: false,
           context: context,
           builder: (context) {
-            return OtpDialog(vID);
+            return OtpDialog(
+              verificationId: vID,
+              phoneNo: _phoneCtl.text,
+              state: _selectedState,
+              city: _selectedDistrict,
+              dob: _selectedDate!,
+              gender: _gender,
+            );
           },
         );
       },

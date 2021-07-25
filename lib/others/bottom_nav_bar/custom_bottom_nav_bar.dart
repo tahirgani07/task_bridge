@@ -38,12 +38,18 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                   size: 30,
                 )
               : Container(),
-          _getNavBarImageItem(
-            width: 25,
-            height: 25,
-            name: "assets/images/home-icon.svg",
+          // _getNavBarImageItem(
+          //   width: 25,
+          //   height: 25,
+          //   name: "assets/images/home-icon.svg",
+          //   onPressed: () => _bottomNavBarModel.changeScreen(0),
+          //   index: 0,
+          // ),
+          _getNavBarIconItem(
+            icon: Icons.search,
             onPressed: () => _bottomNavBarModel.changeScreen(0),
             index: 0,
+            size: 32,
           ),
           _getNavBarImageItem(
             width: 27,

@@ -37,7 +37,8 @@ class AuthService with ChangeNotifier {
           await firebaseAuth.signInWithCredential(credential);
       setLoading(false);
 
-      await _db.addUserToCollectionIfNew(userCredential.user?.uid ?? "test");
+      if (userCredential.user != null)
+        await _db.addUserToCollectionIfNew(userCredential.user!);
 
       return userCredential.user;
     } on SocketException {
@@ -59,7 +60,8 @@ class AuthService with ChangeNotifier {
       await userCredential.user!.updateDisplayName(name);
       setLoading(false);
 
-      await _db.addUserToCollectionIfNew(userCredential.user?.uid ?? "test");
+      if (userCredential.user != null)
+        await _db.addUserToCollectionIfNew(userCredential.user!);
       return userCredential.user;
     } on SocketException {
       setLoading(false);

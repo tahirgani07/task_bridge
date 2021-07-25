@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Size _size = MediaQuery.of(context).size;
     User? user = Provider.of<User?>(context);
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 40, 20, 10),
+      padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
