@@ -60,7 +60,7 @@ class _AdditionalInfoState extends State<AdditionalInfo> {
             },
           ),
           body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
+            padding: EdgeInsets.symmetric(horizontal: 15),
             child: Form(
               key: _formKey,
               child: Column(

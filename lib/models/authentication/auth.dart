@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:task_bridge/models/database/database.dart';
+import 'package:task_bridge/models/user/user_model.dart';
 
 class AuthService with ChangeNotifier {
   final firebaseAuth = FirebaseAuth.instance;
@@ -21,7 +22,7 @@ class AuthService with ChangeNotifier {
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-      if (googleUser == null) return Future.value(false);
+      if (googleUser == null) return false;
 
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth =
@@ -57,11 +58,19 @@ class AuthService with ChangeNotifier {
     try {
       UserCredential userCredential = await firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
-      await userCredential.user!.updateDisplayName(name);
-      setLoading(false);
 
-      if (userCredential.user != null)
-        await _db.addUserToCollectionIfNew(userCredential.user!);
+      if (userCredential.user != null) {
+        await userCredential.user!.updateDisplayName(name);
+        await userCredential.user!.updatePhotoURL(UserModel.defaultPhotoUrl);
+        await _db.addUserToCollectionIfNew(
+          userCredential.user!,
+          name: name,
+          photoUrl: UserModel.defaultPhotoUrl,
+        );
+      }
+      setLoading(false);
+      print("LAST");
+      print(userCredential.user);
       return userCredential.user;
     } on SocketException {
       setLoading(false);

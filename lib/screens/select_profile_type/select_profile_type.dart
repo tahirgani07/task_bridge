@@ -21,7 +21,7 @@ class _SelectProfileTypeState extends State<SelectProfileType> {
     return SafeArea(
       child: Scaffold(
         body: Padding(
-          padding: EdgeInsets.only(left: 30, right: 30, top: 50),
+          padding: EdgeInsets.fromLTRB(30, 50, 30, 0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

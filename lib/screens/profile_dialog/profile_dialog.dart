@@ -11,6 +11,7 @@ import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
 import 'package:task_bridge/screens/additional_info/additional_info.dart';
+import 'package:task_bridge/screens/profile_dialog/profile_header.dart';
 
 class ProfileDialog extends StatefulWidget {
   @override
@@ -27,9 +28,9 @@ class _ProfileDialogState extends State<ProfileDialog> {
   @override
   void initState() {
     User? tempUser = Provider.of<User?>(context, listen: false);
-    String name = tempUser!.displayName ?? "";
+    String name = tempUser?.displayName ?? "";
     _nameCt = new TextEditingController(text: name);
-    _emailController = new TextEditingController(text: tempUser.email ?? "");
+    _emailController = new TextEditingController(text: tempUser?.email ?? "");
 
     super.initState();
   }
@@ -120,70 +121,9 @@ class _ProfileDialogState extends State<ProfileDialog> {
                       //// Profile Picture
                       Column(
                         children: [
-                          Container(
-                            width: circleRadius,
-                            height: circleRadius,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 8.0,
-                                  offset: Offset(0.0, 5.0),
-                                )
-                              ],
-                            ),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(100),
-                              onTap: () async => await _updateProfilePic(user),
-                              child: Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: (user != null)
-                                    ? ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(100),
-                                        child: Image.network(
-                                          user.photoURL ??
-                                              UserModel.defaultPhotoUrl,
-                                          errorBuilder:
-                                              (context, child, error) {
-                                            Flushbar(
-                                              title: "Something went wrong",
-                                              message: "${error.toString()}",
-                                            ).show(context);
-                                            return Text("?");
-                                          },
-                                          loadingBuilder: (context, child,
-                                              loadingProgress) {
-                                            int expectedTotalBytes =
-                                                loadingProgress
-                                                        ?.expectedTotalBytes ??
-                                                    1;
-                                            if (loadingProgress == null) {
-                                              return child;
-                                            }
-                                            return Center(
-                                              child: CircularProgressIndicator(
-                                                value: loadingProgress
-                                                            .expectedTotalBytes !=
-                                                        null
-                                                    ? loadingProgress
-                                                            .cumulativeBytesLoaded /
-                                                        expectedTotalBytes
-                                                    : null,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    : Center(
-                                        child: Container(
-                                          child: Icon(Icons.person),
-                                        ),
-                                      ),
-                              ),
-                            ),
+                          ProfileHeader(
+                            user: user,
+                            radius: circleRadius,
                           ),
                           SizedBox(height: 10),
                           Padding(
@@ -246,16 +186,6 @@ class _ProfileDialogState extends State<ProfileDialog> {
       _showEditNameTextField = val;
     });
     if (val) _nameFc.requestFocus();
-  }
-
-  _updateProfilePic(User? user) async {
-    LoadingDialog.showLoadingDialog(context);
-    final PickedFile? file =
-        await ImagePicker().getImage(source: ImageSource.gallery);
-    if (file != null) {
-      bool success = await UserModel.updateProfilePhoto(File(file.path), user!);
-    }
-    LoadingDialog.dismissLoadingDialog(context);
   }
 
   _getButton({

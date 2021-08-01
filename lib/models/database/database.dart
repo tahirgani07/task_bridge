@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:task_bridge/models/user/my_user.dart';
 
 class Database {
   // Making this class a singleton.
@@ -14,7 +15,11 @@ class Database {
 
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  Future addUserToCollectionIfNew(User user) async {
+  Future addUserToCollectionIfNew(
+    User user, {
+    String? name,
+    String? photoUrl,
+  }) async {
     DocumentSnapshot snapshot =
         await db.collection("users").doc(user.uid).get();
     if (!snapshot.exists) {
@@ -22,9 +27,14 @@ class Database {
       await db.collection("users").doc(user.uid).set({
         "freelancer": false,
         "id": user.uid,
-        "name": user.displayName,
-        "photoUrl": user.photoURL,
+        "name": name != null ? name : user.displayName,
+        "photoUrl": photoUrl != null ? photoUrl : user.photoURL,
         "email": user.email,
+        "state": "",
+        "city": "",
+        "tags": [],
+        "rating": 0,
+        "workDone": 0,
       });
       return true;
     }
@@ -40,8 +50,10 @@ class Database {
     return false;
   }
 
-  Future<bool> addAdditionalInfoAndSwitchToFreelancer(
-    String uid, {
+  Future<bool> addAdditionalInfoAndSwitchToFreelancer({
+    required String uid,
+    required String name,
+    required String photoUrl,
     required String state,
     required String city,
     required DateTime dob,
@@ -54,14 +66,84 @@ class Database {
       "city": city,
       "dob": dob,
       "gender": gender,
+      "tags": [],
+      "rating": 0,
+      "workDone": 0,
     }).onError((error, stackTrace) {
       print(error.toString());
       isSuccess = false;
     });
+    if (isSuccess) {
+      // Add in corresponding state and corresponding city collection.
+      DocumentSnapshot stateSnap =
+          await db.collection("states").doc(state).get();
+      if (!stateSnap.exists) {
+        await db.collection("states").doc(state).set({"name": state});
+      }
+      DocumentSnapshot citySnap = await db
+          .collection("states")
+          .doc(state)
+          .collection("city")
+          .doc(city)
+          .get();
+      if (!citySnap.exists) {
+        db
+            .collection("states")
+            .doc(state)
+            .collection("city")
+            .doc(city)
+            .set({"name": city});
+      }
+      db
+          .collection("states")
+          .doc(state)
+          .collection("city")
+          .doc(city)
+          .collection("freelancers")
+          .doc(uid)
+          .set({
+        "uid": uid,
+        "photoUrl": photoUrl,
+        "name": name,
+        "state": state,
+        "city": city,
+        "tags": [],
+        "rating": 0,
+        "workDone": 0,
+      });
+    }
     return isSuccess;
   }
 
-  sendMessage({
+  Future addtags({
+    required String uid,
+    required List tags,
+    required String state,
+    required String city,
+  }) async {
+    bool isSuccess = true;
+    await db.collection("users").doc(uid).update({
+      "tags": tags,
+    }).onError((error, stackTrace) {
+      print(error.toString());
+      isSuccess = false;
+    });
+    if (isSuccess) {
+      db
+          .collection("states")
+          .doc(state)
+          .collection("city")
+          .doc(city)
+          .collection("freelancers")
+          .doc(uid)
+          .update({
+        "tags": tags,
+      });
+    }
+    return isSuccess;
+  }
+
+  Future sendMessage({
     required String combinedUid,
     required String senderUid,
     required String message,

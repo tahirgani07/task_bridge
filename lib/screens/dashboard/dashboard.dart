@@ -1,4 +1,16 @@
+import 'dart:math';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:task_bridge/models/authentication/auth.dart';
+import 'package:task_bridge/models/database/database.dart';
+import 'package:task_bridge/models/services/service_model.dart';
+import 'package:task_bridge/models/user/my_user.dart';
+import 'package:task_bridge/models/user/user_model.dart';
+import 'package:task_bridge/others/my_colors.dart';
+import 'package:task_bridge/screens/dashboard/create_service_dialog.dart';
+import 'package:task_bridge/screens/profile_dialog/profile_header.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({Key? key}) : super(key: key);
@@ -8,554 +20,440 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  User? _user;
   int selectedRadio = 0;
+  int descMaxDisplayLength = 85;
+  AuthService? _auth;
+
   @override
   Widget build(BuildContext context) {
-    Size screensize = MediaQuery.of(context).size;
-    //selectedRadio=this.selectedRadio;
+    Size _size = MediaQuery.of(context).size;
+    _user = Provider.of<User?>(context);
+    _auth = Provider.of<AuthService>(context);
 
-    List<Services> services = [
-      Services(
-          "Service  1",
-          "This service includes 2 jobs that will be mentioned in detail here , additionally the cost of materials has to be given",
-          200,
-          true),
-      Services("Service  2",
-          "this is a description about the service mentioned", 200, true),
-      Services("Service  3",
-          "this is a description about the service mentioned", 900, true),
-      Services("Service  4",
-          "this is a description about the service mentioned", 350, false),
-      Services("Service  5",
-          "this is a description about the service mentioned", 201, true),
-    ];
-
-    return Scaffold(
-      body: Container(
-          height: screensize.height,
-          width: screensize.width,
-          alignment: Alignment.bottomCenter,
-          color: Colors.black,
-          padding: EdgeInsets.all(2),
-          child: SingleChildScrollView(
-            child: Column(children: [
-              Container(
-                height: screensize.height * 0.4,
-                decoration: BoxDecoration(
-                    //borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                    image: DecorationImage(
-                  image: AssetImage('assets/images/account-avatar.png'),
-                  fit: BoxFit.fitWidth,
-                  //scale: 1,
-                )),
-              ),
-              Container(
-                  //height: screensize.height *0.9,
-                  width: screensize.width,
-                  alignment: Alignment.bottomCenter,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(width: 1.0, color: Colors.grey),
-                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.black,
-                          blurRadius: 100.0,
-                          spreadRadius: 30.0,
-                          offset: Offset(0, -30.0))
-                    ],
-                  ),
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Worker Name',
-                              style: TextStyle(
-                                  fontSize: 30.0,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.bold),
+    return SafeArea(
+      child: Stack(
+        children: [
+          Container(
+            color: MyColor.subtleBg,
+            child: FutureBuilder<MyUser>(
+                future: UserModel.getCurrentUserDetails(_user!.uid),
+                builder: (context, snap) {
+                  if (snap.hasData) {
+                    String curTags = "";
+                    for (int i = 0; i < snap.data!.tags.length; i++) {
+                      curTags += snap.data!.tags[i];
+                      if (i < snap.data!.tags.length - 1) curTags += ", ";
+                    }
+                    return CustomScrollView(
+                      slivers: [
+                        SliverAppBar(
+                          forceElevated: true,
+                          elevation: 8,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(10),
                             ),
-                            IconButton(
-                                iconSize: 30.0,
-                                tooltip: ' Rating',
-                                onPressed: () {
-                                  print('Rating clicked');
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                            title: Text('Rating'),
-                                            content: Container(
-                                              child: SingleChildScrollView(
-                                                child: Column(children: [
-                                                  Text(
-                                                    ' 3.4 ',
-                                                    style: TextStyle(
-                                                        fontSize: 20.0,
-                                                        fontFamily: 'Poppins'),
-                                                  ),
-                                                  InkWell(
-                                                    child: Text(
-                                                      'check review',
-                                                      style: TextStyle(
-                                                          color:
-                                                              Colors.blueAccent,
-                                                          fontSize: 18.0,
-                                                          fontFamily:
-                                                              'Poppins'),
-                                                    ),
-                                                    onTap: () {
-                                                      print('review check');
-                                                    },
-                                                  )
-                                                ]),
-                                              ),
-                                            ));
-                                      });
-                                },
-                                icon: Icon(
-                                  Icons.star,
-                                  color: Colors.amber,
-                                ))
-                          ]),
-                      SizedBox(
-                        height: 20.0,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          //border: Border.all(width: 1.0,color: Colors.grey),
-                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 7.0,
-                              spreadRadius: 0.0,
-                            )
-                          ],
+                          ),
+                          floating: false,
+                          expandedHeight: 80,
+                          flexibleSpace: FlexibleSpaceBar(
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("Dashboard"),
+                                SizedBox(width: 10),
+                                InkWell(
+                                  onTap: () => _auth!.signOut(),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 5,
+                                    ),
+                                    child: Text(
+                                      "Logout",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            centerTitle: true,
+                          ),
+                          backgroundColor: MyColor.primaryColor,
                         ),
-                        padding: EdgeInsets.all(5.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              iconSize: 30.0,
-                              onPressed: () {
-                                print('Pressed Location');
-                                showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                          title: Text('Work Location'),
-                                          content: Container(
-                                            child: SingleChildScrollView(
-                                              child: Column(children: [
-                                                Text(
-                                                  ' Kandivali , Mumbai ',
-                                                  style: TextStyle(
-                                                      fontSize: 18.0,
-                                                      fontFamily: 'Poppins'),
-                                                ),
-                                                Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: InkWell(
-                                                    child: Text(
-                                                      'Delete',
-                                                      style: TextStyle(
-                                                          color:
-                                                              Colors.redAccent,
-                                                          fontSize: 18.0,
-                                                          fontFamily:
-                                                              'Poppins'),
-                                                    ),
-                                                    onTap: () {
-                                                      print('Deleted');
-                                                    },
-                                                  ),
-                                                )
-                                              ]),
-                                            ),
-                                          ));
-                                    });
-                              },
-                              icon: Icon(Icons.location_on),
-                              color: Colors.white,
-                            ),
-                            IconButton(
-                                iconSize: 30.0,
-                                onPressed: () {
-                                  print('Pressed History');
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                            title: Text('Work Location'),
-                                            content: Container(
-                                              child: SingleChildScrollView(
-                                                child: Column(children: [
-                                                  Text(
-                                                    ' long list -- ',
-                                                    style: TextStyle(
-                                                        fontSize: 18.0,
-                                                        fontFamily: 'Poppins'),
-                                                  ),
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: InkWell(
-                                                      child: Text(
-                                                        'Delete',
-                                                        style: TextStyle(
-                                                            color: Colors
-                                                                .redAccent,
-                                                            fontSize: 18.0,
-                                                            fontFamily:
-                                                                'Poppins'),
-                                                      ),
-                                                      onTap: () {
-                                                        print('Deleted');
-                                                      },
-                                                    ),
-                                                  )
-                                                ]),
-                                              ),
-                                            ));
-                                      });
-                                },
-                                icon: Icon(Icons.history),
-                                color: Colors.white),
-                            IconButton(
-                                iconSize: 30.0,
-                                onPressed: () {
-                                  print('Pressed Count');
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                            title: Text('Gig count'),
-                                            content: Container(
-                                              child: SingleChildScrollView(
-                                                child: Column(children: [
-                                                  Text(
-                                                    ' 23 plumbing gigs  ',
-                                                    style: TextStyle(
-                                                        fontSize: 18.0,
-                                                        fontFamily: 'Poppins'),
-                                                  ),
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: InkWell(
-                                                      child: Text(
-                                                        'Delete',
-                                                        style: TextStyle(
-                                                            color: Colors
-                                                                .redAccent,
-                                                            fontSize: 18.0,
-                                                            fontFamily:
-                                                                'Poppins'),
-                                                      ),
-                                                      onTap: () {
-                                                        print('Deleted');
-                                                      },
-                                                    ),
-                                                  )
-                                                ]),
-                                              ),
-                                            ));
-                                      });
-                                },
-                                icon: Icon(Icons.check_circle_outlined),
-                                color: Colors.white),
-                            IconButton(
-                              iconSize: 30.0,
-                              onPressed: () {
-                                print('Pressed tags');
-                                showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                          title: Text('Tags'),
-                                          content: Container(
-                                            child: SingleChildScrollView(
-                                              child: Column(children: [
-                                                Text(
-                                                  ' #one # two ',
-                                                  style: TextStyle(
-                                                      fontSize: 18.0,
-                                                      fontFamily: 'Poppins'),
-                                                ),
-                                                Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: InkWell(
-                                                    child: Text(
-                                                      'Delete',
-                                                      style: TextStyle(
-                                                          color:
-                                                              Colors.redAccent,
-                                                          fontSize: 18.0,
-                                                          fontFamily:
-                                                              'Poppins'),
-                                                    ),
-                                                    onTap: () {
-                                                      print('Deleted');
-                                                    },
-                                                  ),
-                                                )
-                                              ]),
-                                            ),
-                                          ));
-                                    });
-                              },
-                              icon: Icon(Icons.tag),
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 30.0,
-                      ),
-                      Column(
-                        children: List.generate(services.length, (index) {
-                          return Card(
-                            elevation: 10.0,
-                            margin: EdgeInsets.all(10.0),
-                            shadowColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0)),
-                            child: ListTile(
-                              tileColor: Colors.white,
-                              title: Text(services[index].name,
-                                  style: TextStyle(
-                                      fontSize: 20.0,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.bold)),
-                              subtitle: Text(services[index].desc,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                      fontSize: 16.0, fontFamily: 'Poppins')),
-                              trailing: Text(services[index].price.toString(),
-                                  style: TextStyle(
-                                      fontSize: 20.0, fontFamily: 'Poppins')),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20.0)),
-                              ),
-                              //leading: Text(services[index].active.toString()),
-                              onTap: () {
-                                print(
-                                    'Clicked on ' + services[index].toString());
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: Text('About'),
-                                      content: Container(
-                                        child: SingleChildScrollView(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    services[index].name,
-                                                    style: TextStyle(
-                                                        fontSize: 20.0,
-                                                        fontFamily: 'Poppins'),
-                                                  ),
-                                                  Text(
-                                                      services[index]
-                                                          .price
-                                                          .toString(),
-                                                      style: TextStyle(
-                                                          fontSize: 20.0,
-                                                          fontFamily:
-                                                              'Poppins')),
-                                                ],
-                                              ),
-                                              Text(
-                                                'Active:  ' +
-                                                    services[index]
-                                                        .active
-                                                        .toString(),
-                                                style: TextStyle(
-                                                    fontSize: 15.0,
-                                                    fontFamily: 'Poppins',
-                                                    color: Colors.blue),
-                                              ),
-                                              Divider(
-                                                thickness: 1.0,
-                                                color: Colors.grey,
-                                              ),
-                                              SizedBox(
-                                                height: 10.0,
-                                              ),
-                                              Text(
-                                                services[index].desc,
-                                                style: TextStyle(
-                                                    fontSize: 18.0,
-                                                    fontFamily: 'Poppins'),
-                                              ),
-                                              SizedBox(
-                                                height: 10.0,
-                                              ),
-                                              InkWell(
-                                                child: Text(
-                                                  'Delete',
-                                                  style: TextStyle(
-                                                      color: Colors.redAccent,
-                                                      fontSize: 18.0,
-                                                      fontFamily: 'Poppins'),
-                                                ),
-                                                onTap: () {
-                                                  print('Deleted');
-                                                },
-                                              )
-                                            ],
-                                          ),
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Material(
+                              elevation: 5,
+                              color: MyColor.primaryColor,
+                              borderRadius: BorderRadius.circular(20),
+                              child: Padding(
+                                padding: EdgeInsets.all(20),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      child: ProfileHeader(
+                                          user: _user, radius: 100),
+                                    ),
+                                    SizedBox(height: 15),
+                                    Container(
+                                      child: Text(
+                                        "${_user?.displayName ?? ''}",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
                                         ),
                                       ),
-                                    );
-                                  },
-                                );
-                              },
+                                    ),
+                                    Text(
+                                      "${snap.data!.state}, ${snap.data!.city}",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 3),
+                                    Text(
+                                      "${_user!.email}",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      "Tags:",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      "$curTags",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 20),
+                                    Material(
+                                      color: Colors.white38,
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(30),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _getComponent(
+                                              "${snap.data!.rating.toStringAsPrecision(2)}",
+                                              "Rating",
+                                              Icons.star,
+                                              24,
+                                            ),
+                                            _getComponent(
+                                              "${snap.data!.workDone}",
+                                              "Works Completed",
+                                              Icons.work,
+                                              22,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  )),
-            ]),
-          )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print('This is to edit');
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text('Add a Service'),
-                content: Container(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          decoration:
-                              InputDecoration(labelText: 'Service name'),
-                        ),
-                        SizedBox(
-                          height: 10.0,
-                        ),
-                        TextField(
-                          decoration:
-                              InputDecoration(labelText: 'Service Rate'),
-                        ),
-                        SizedBox(
-                          height: 10.0,
-                        ),
-                        TextField(
-                          decoration:
-                              InputDecoration(labelText: 'Service description'),
-                        ),
-                        SizedBox(
-                          height: 10.0,
-                        ),
-                        /*  Row(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(border: Border.all(width: 1.0,color: Colors.grey,),borderRadius: BorderRadius.circular(10)),
-                                //padding: EdgeInsets.all(20),
-                                child: Row(
-                                  //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Radio(
-                                      value: 1,
-                                      groupValue: selectedRadio,
-                                      activeColor: Colors.blue,
-                                      onChanged: (val){
-                                        setState(() {
-                                          selectedRadio= val as int ;
-                                        });
-
-                                        print(" $val");
-                                      },
-                                    ),
-
-                                    Text('Activate ',style: TextStyle(fontFamily:'Poppins',fontSize: 12.0))
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Container(
-                                decoration: BoxDecoration(border: Border.all(width: 1.0,color: Colors.grey,),borderRadius: BorderRadius.circular(10)),
-                                //padding: EdgeInsets.all(15.0),
-                                child: Row(
-                                  children: [
-                                    Radio(
-                                      value: 2,
-                                      groupValue: selectedRadio,
-                                      activeColor: Colors.blue,
-                                      onChanged: (val){
-                                        setState(() {
-                                          selectedRadio= val as int ;
-                                        });
-
-                                        print(" $val");
-                                      },
-                                    ),
-
-                                    Text('Deactivate  ',style: TextStyle(fontFamily:'Poppins',fontSize: 12.0))
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ), */
-                        SizedBox(
-                          height: 10.0,
-                        ),
-                        InkWell(
-                          child: Text(
-                            'Add',
-                            style: TextStyle(
-                                color: Colors.blueAccent,
-                                fontSize: 18.0,
-                                fontFamily: 'Poppins'),
                           ),
-                          onTap: () {
-                            print('Added to the list');
-                          },
-                        )
+                        ),
                       ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        child: Icon(Icons.add),
+                    );
+                  } else {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                }),
+          ),
+          // SERVICES
+          // Positioned.fill(
+          //   child: DraggableScrollableSheet(
+          //     initialChildSize: 0.24,
+          //     minChildSize: 0.23,
+          //     maxChildSize: 1,
+          //     builder: (context, scrollctl) {
+          //       return Material(
+          //         color: Colors.transparent,
+          //         elevation: 20,
+          //         child: Container(
+          //           margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
+          //           decoration: BoxDecoration(
+          //             color: Colors.white,
+          //             borderRadius: BorderRadius.circular(20),
+          //           ),
+          //           child: CustomScrollView(
+          //             controller: scrollctl,
+          //             slivers: [
+          //               SliverAppBar(
+          //                 shape: RoundedRectangleBorder(
+          //                   borderRadius: BorderRadius.only(
+          //                     topLeft: Radius.circular(20),
+          //                     topRight: Radius.circular(20),
+          //                   ),
+          //                 ),
+          //                 backgroundColor: Colors.white,
+          //                 floating: true,
+          //                 title: Container(
+          //                   decoration: BoxDecoration(
+          //                     borderRadius: BorderRadius.circular(40),
+          //                   ),
+          //                   child: Row(
+          //                     mainAxisAlignment: MainAxisAlignment.center,
+          //                     children: [
+          //                       Text(
+          //                         "Services",
+          //                         style: TextStyle(
+          //                           fontSize: 24,
+          //                           color: MyColor.primaryColor,
+          //                           fontWeight: FontWeight.w700,
+          //                         ),
+          //                         maxLines: 1,
+          //                       ),
+          //                       SizedBox(width: 10),
+          //                       MaterialButton(
+          //                         shape: RoundedRectangleBorder(
+          //                           borderRadius: BorderRadius.circular(100),
+          //                         ),
+          //                         padding: EdgeInsets.all(5),
+          //                         minWidth: 20,
+          //                         height: 20,
+          //                         color: MyColor.primaryColor,
+          //                         onPressed: () async {
+          //                           await showDialog(
+          //                             barrierDismissible: false,
+          //                             context: context,
+          //                             builder: (context) {
+          //                               return CreateService(_user!.uid);
+          //                             },
+          //                           );
+          //                         },
+          //                         child: Icon(
+          //                           Icons.add,
+          //                           color: Colors.white,
+          //                         ),
+          //                       ),
+          //                     ],
+          //                   ),
+          //                 ),
+          //               ),
+          //               SliverToBoxAdapter(
+          //                 child: StreamBuilder<List<Service>>(
+          //                     stream: ServiceModel.getServices(_user!.uid),
+          //                     builder: (context, snapshot) {
+          //                       if (snapshot.hasData &&
+          //                           snapshot.data!.length > 0) {
+          //                         return Padding(
+          //                           padding: EdgeInsets.all(15.0),
+          //                           child: Column(
+          //                             children: List.generate(
+          //                               snapshot.data!.length,
+          //                               (ind) {
+          //                                 Service curService =
+          //                                     snapshot.data![ind];
+          //                                 return Padding(
+          //                                   padding:
+          //                                       EdgeInsets.only(bottom: 10),
+          //                                   child: Material(
+          //                                     color: curService.active
+          //                                         ? Colors.white
+          //                                         : Colors.grey[200],
+          //                                     elevation: 5,
+          //                                     borderRadius:
+          //                                         BorderRadius.circular(20),
+          //                                     child: InkWell(
+          //                                       borderRadius:
+          //                                           BorderRadius.circular(20),
+          //                                       onTap: !curService.active
+          //                                           ? null
+          //                                           : () async {
+          //                                               print("WORKS");
+          //                                             },
+          //                                       child: Padding(
+          //                                         padding: EdgeInsets.all(20),
+          //                                         child: Column(
+          //                                           children: [
+          //                                             Row(
+          //                                               mainAxisAlignment:
+          //                                                   MainAxisAlignment
+          //                                                       .spaceBetween,
+          //                                               children: [
+          //                                                 Flexible(
+          //                                                   child: Container(
+          //                                                     width:
+          //                                                         _size.width /
+          //                                                             2,
+          //                                                     child: Text(
+          //                                                       "${curService.name}",
+          //                                                       style:
+          //                                                           TextStyle(
+          //                                                         fontSize: 20,
+          //                                                         fontWeight:
+          //                                                             FontWeight
+          //                                                                 .bold,
+          //                                                       ),
+          //                                                     ),
+          //                                                   ),
+          //                                                 ),
+          //                                                 Switch(
+          //                                                   value: curService
+          //                                                       .active,
+          //                                                   onChanged:
+          //                                                       (val) async {
+          //                                                     await ServiceModel
+          //                                                         .changeServiceState(
+          //                                                       _user!.uid,
+          //                                                       curService
+          //                                                           .timestamp
+          //                                                           .millisecondsSinceEpoch
+          //                                                           .toString(),
+          //                                                       val,
+          //                                                     );
+          //                                                   },
+          //                                                 ),
+          //                                               ],
+          //                                             ),
+          //                                             Row(
+          //                                               mainAxisAlignment:
+          //                                                   MainAxisAlignment
+          //                                                       .spaceBetween,
+          //                                               children: [
+          //                                                 Flexible(
+          //                                                   flex: 5,
+          //                                                   child: Container(
+          //                                                     child: Text(
+          //                                                       "${curService.desc.substring(0, min(descMaxDisplayLength, curService.desc.length))}${curService.desc.length > descMaxDisplayLength ? '....' : ''}",
+          //                                                       style:
+          //                                                           TextStyle(
+          //                                                         fontSize: 15,
+          //                                                         fontWeight:
+          //                                                             FontWeight
+          //                                                                 .w500,
+          //                                                         color: Colors
+          //                                                                 .grey[
+          //                                                             600],
+          //                                                       ),
+          //                                                     ),
+          //                                                   ),
+          //                                                 ),
+          //                                                 Flexible(
+          //                                                   flex: 3,
+          //                                                   child: Text(
+          //                                                     "Rs.\n${curService.price.toStringAsFixed(2)}",
+          //                                                     textAlign:
+          //                                                         TextAlign
+          //                                                             .center,
+          //                                                     style: TextStyle(
+          //                                                       fontSize: 20,
+          //                                                       fontWeight:
+          //                                                           FontWeight
+          //                                                               .bold,
+          //                                                     ),
+          //                                                   ),
+          //                                                 ),
+          //                                               ],
+          //                                             ),
+          //                                           ],
+          //                                         ),
+          //                                       ),
+          //                                     ),
+          //                                   ),
+          //                                 );
+          //                               },
+          //                             ),
+          //                           ),
+          //                         );
+          //                       }
+          //                       return Container(
+          //                         height: _size.height / 2,
+          //                         child: Center(
+          //                           child: Text(
+          //                             "No Services Added yet!",
+          //                             textAlign: TextAlign.center,
+          //                             style: TextStyle(
+          //                               fontSize: 20,
+          //                               color: Colors.grey,
+          //                               fontWeight: FontWeight.w500,
+          //                             ),
+          //                           ),
+          //                         ),
+          //                       );
+          //                     }),
+          //               ),
+          //               SliverToBoxAdapter(
+          //                 child: SizedBox(height: 60),
+          //               ),
+          //             ],
+          //           ),
+          //         ),
+          //       );
+          //     },
+          //   ),
+          // ),
+        ],
       ),
     );
   }
-}
 
-class Services {
-  String name;
-  String desc;
-  double price;
-  bool active;
-
-  Services(this.name, this.desc, this.price, this.active);
+  _getComponent(String value, String title, IconData icon, double size) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text(
+              "$value",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 3),
+            Icon(
+              icon,
+              color: Colors.white,
+              size: size,
+            ),
+          ],
+        ),
+        SizedBox(height: 10),
+        Text(
+          "$title",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white70,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
 }

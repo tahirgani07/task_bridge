@@ -2,20 +2,19 @@ import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:task_bridge/models/chats/chat_model.dart';
 import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/others/my_colors.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String uid;
+  final User user;
   final String otherUid;
   final String otherName;
   final String otherEmail;
   final String otherPhotoUrl;
 
   const ChatScreen({
-    required this.uid,
+    required this.user,
     required this.otherUid,
     required this.otherName,
     required this.otherEmail,
@@ -41,7 +40,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   bool _userIsAddedToMsgList = false;
 
-  User? _user;
   Database _db = Database();
 
   @override
@@ -53,7 +51,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     });
-    _combinedUid = _getCombinedUid(widget.uid, widget.otherUid);
+    _combinedUid = _getCombinedUid(widget.user.uid, widget.otherUid);
     super.initState();
   }
 
@@ -66,7 +64,6 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     _size = MediaQuery.of(context).size;
-    _user = Provider.of<User?>(context);
 
     return SafeArea(
       child: Scaffold(
@@ -129,67 +126,71 @@ class _ChatScreenState extends State<ChatScreen> {
                                     child: CircularProgressIndicator(),
                                   ),
                                 );
-                        bool curUsersMsg = chats[index].uid == _user!.uid;
-                        return Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Row(
-                            mainAxisAlignment: curUsersMsg
-                                ? MainAxisAlignment.end
-                                : MainAxisAlignment.start,
-                            children: [
-                              Material(
-                                elevation: 8,
-                                borderRadius: BorderRadius.circular(10),
-                                color: curUsersMsg
-                                    ? MyColor.primaryColor
-                                    : Colors.white,
-                                child: Container(
-                                  width: _size!.width * 0.8,
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 4, horizontal: 12),
-                                  color: Colors.transparent,
-                                  child: Column(
-                                    crossAxisAlignment: curUsersMsg
-                                        ? CrossAxisAlignment.end
-                                        : CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 10),
-                                        child: Text(
-                                          "${chats[index].message}",
-                                          textAlign: curUsersMsg
-                                              ? TextAlign.right
-                                              : null,
-                                          style: TextStyle(
-                                            color: curUsersMsg
-                                                ? Colors.white
+                        bool curUsersMsg = chats[index].uid == widget.user.uid;
+                        return ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: _size!.width * 0.8,
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(8),
+                            child: Row(
+                              mainAxisAlignment: curUsersMsg
+                                  ? MainAxisAlignment.end
+                                  : MainAxisAlignment.start,
+                              children: [
+                                Material(
+                                  elevation: 8,
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: curUsersMsg
+                                      ? MyColor.primaryColor
+                                      : Colors.white,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 4, horizontal: 12),
+                                    color: Colors.transparent,
+                                    child: Column(
+                                      crossAxisAlignment: curUsersMsg
+                                          ? CrossAxisAlignment.end
+                                          : CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10),
+                                          child: Text(
+                                            "${chats[index].message}",
+                                            textAlign: curUsersMsg
+                                                ? TextAlign.right
                                                 : null,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                      ),
-                                      // Sent Time
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            "${_formatTimeTo12Hr(chats[index].timestamp.hour, chats[index].timestamp.minute)}",
                                             style: TextStyle(
                                               color: curUsersMsg
-                                                  ? null
-                                                  : Colors.grey,
-                                              fontWeight: FontWeight.w600,
+                                                  ? Colors.white
+                                                  : null,
+                                              fontSize: 18,
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    ],
+                                        ),
+                                        // Sent Time
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              "${_formatTimeTo12Hr(chats[index].timestamp.hour, chats[index].timestamp.minute)}",
+                                              style: TextStyle(
+                                                color: curUsersMsg
+                                                    ? null
+                                                    : Colors.grey,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -276,11 +277,13 @@ class _ChatScreenState extends State<ChatScreen> {
     String msg = _messageCtl.text;
     _messageCtl.clear();
 
-    if (!_userIsAddedToMsgList) _checkIfUserIsAddedToMsgList();
+    setState(() {
+      _isMessageEmpty = true;
+    });
 
     await _db.sendMessage(
       combinedUid: _combinedUid,
-      senderUid: _user!.uid,
+      senderUid: widget.user.uid,
       message: msg,
     );
   }
@@ -297,17 +300,21 @@ class _ChatScreenState extends State<ChatScreen> {
     return hour.toString() + ":" + minute.toString() + " " + amOrPm;
   }
 
-  Future _checkIfUserIsAddedToMsgList() async {
-    await _db.checkIfUserIsAddedToMsgList(
-      uid1: _user!.uid,
-      name1: _user!.displayName!,
-      email1: _user!.email!,
-      photoUrl1: _user!.photoURL!,
-      uid2: widget.otherUid,
-      name2: widget.otherName,
-      email2: widget.otherEmail,
-      photoUrl2: widget.otherPhotoUrl,
-    );
+  Future<String> _checkIfUserIsAddedToMsgList() async {
+    String error = "";
+    await _db
+        .checkIfUserIsAddedToMsgList(
+          uid1: widget.user.uid,
+          name1: widget.user.displayName!,
+          email1: widget.user.email!,
+          photoUrl1: widget.user.photoURL!,
+          uid2: widget.otherUid,
+          name2: widget.otherName,
+          email2: widget.otherEmail,
+          photoUrl2: widget.otherPhotoUrl,
+        )
+        .onError((err, stackTrace) => error = err.toString());
+    return error;
   }
 
   String _getCombinedUid(String uid1, String uid2) {

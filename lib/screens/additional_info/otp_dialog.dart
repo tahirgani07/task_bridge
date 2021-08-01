@@ -10,6 +10,7 @@ import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
 import 'package:task_bridge/others/my_colors.dart';
+import 'package:task_bridge/screens/additional_info/tags_screen.dart';
 import 'package:task_bridge/screens/authentication/auth_manager.dart';
 
 class OtpDialog extends StatefulWidget {
@@ -185,7 +186,9 @@ class _OtpDialogState extends State<OtpDialog> {
     if (success) {
       LoadingDialog.dismissLoadingDialog(context);
       await Database().addAdditionalInfoAndSwitchToFreelancer(
-        _user!.uid,
+        uid: _user!.uid,
+        name: _user?.displayName ?? "",
+        photoUrl: _user?.photoURL ?? UserModel.defaultPhotoUrl,
         state: widget.state,
         city: widget.city,
         dob: widget.dob,
@@ -193,8 +196,15 @@ class _OtpDialogState extends State<OtpDialog> {
       );
       UserModel.isFreelancer = true;
       Navigator.popUntil(context, (route) => false);
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => AuthManager()));
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => TagsScreen(
+            uid: _user!.uid,
+            state: widget.state,
+            city: widget.city,
+          ),
+        ),
+      );
     }
   }
 }

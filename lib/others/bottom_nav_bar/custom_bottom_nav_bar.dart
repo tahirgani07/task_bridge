@@ -58,12 +58,12 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
             onPressed: () => _bottomNavBarModel.changeScreen(1),
             index: 1,
           ),
-          _getNavBarIconItem(
-            icon: Icons.event_outlined,
-            onPressed: () => _bottomNavBarModel.changeScreen(2),
-            index: 2,
-            size: 30,
-          ),
+          // _getNavBarIconItem(
+          //   icon: Icons.event_outlined,
+          //   onPressed: () => _bottomNavBarModel.changeScreen(2),
+          //   index: 2,
+          //   size: 30,
+          // ),
           _getNavBarIconItem(
             icon: Icons.bookmark_outline,
             onPressed: () => _bottomNavBarModel.changeScreen(3),

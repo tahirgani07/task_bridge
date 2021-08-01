@@ -156,7 +156,7 @@ class _AllChatsScreenState extends State<AllChatsScreen> {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => ChatScreen(
-            uid: _user!.uid,
+            user: _user!,
             otherUid: otherUid,
             otherName: otherName,
             otherPhotoUrl: otherPhotoUrl,

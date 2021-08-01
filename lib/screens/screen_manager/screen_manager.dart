@@ -5,10 +5,11 @@ import 'package:task_bridge/models/bottom_nav_bar/bottom_nav_bar_model.dart';
 import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/others/bottom_nav_bar/custom_bottom_nav_bar.dart';
+import 'package:task_bridge/screens/additional_info/tags_screen.dart';
+import 'package:task_bridge/screens/bookmarks_screen/bookmarks_screen.dart';
 import 'package:task_bridge/screens/dashboard/dashboard.dart';
 import 'package:task_bridge/screens/home/home_screen.dart';
 import 'package:task_bridge/screens/chats_screen/all_chats_screen.dart';
-import 'package:task_bridge/screens/test2.dart';
 
 class ScreenManager extends StatelessWidget {
   @override
@@ -39,6 +40,9 @@ class ScreenManager extends StatelessWidget {
                       break;
                     case 1:
                       currentScreen = AllChatsScreen();
+                      break;
+                    case 3:
+                      currentScreen = BookmarksScreen();
                       break;
                     default:
                       currentScreen = HomeScreen();
