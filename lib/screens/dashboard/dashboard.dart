@@ -9,35 +9,49 @@ import 'package:task_bridge/models/services/service_model.dart';
 import 'package:task_bridge/models/user/my_user.dart';
 import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/others/my_colors.dart';
+import 'package:task_bridge/screens/chats_screen/chat_screen.dart';
 import 'package:task_bridge/screens/dashboard/create_service_dialog.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_header.dart';
 
 class Dashboard extends StatefulWidget {
-  const Dashboard({Key? key}) : super(key: key);
+  final String displayUsersUid;
+  final String loggedInUserUid;
+
+  Dashboard({required this.displayUsersUid, required this.loggedInUserUid});
 
   @override
   _DashboardState createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
-  User? _user;
+  User? _loggedInUser;
   int selectedRadio = 0;
   int descMaxDisplayLength = 85;
   AuthService? _auth;
+  bool loggedInUsersDashboard = false;
+
+  @override
+  void didChangeDependencies() async {
+    _loggedInUser = Provider.of<User?>(context);
+    _auth = Provider.of<AuthService>(context);
+
+    if (widget.displayUsersUid == widget.loggedInUserUid) {
+      loggedInUsersDashboard = true;
+    }
+
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Size _size = MediaQuery.of(context).size;
-    _user = Provider.of<User?>(context);
-    _auth = Provider.of<AuthService>(context);
-
     return SafeArea(
       child: Stack(
         children: [
           Container(
             color: MyColor.subtleBg,
             child: FutureBuilder<MyUser>(
-                future: UserModel.getCurrentUserDetails(_user!.uid),
+                future:
+                    UserModel.getParticularUserDetails(widget.displayUsersUid),
                 builder: (context, snap) {
                   if (snap.hasData) {
                     String curTags = "";
@@ -49,6 +63,7 @@ class _DashboardState extends State<Dashboard> {
                       slivers: [
                         SliverAppBar(
                           forceElevated: true,
+                          automaticallyImplyLeading: false,
                           elevation: 8,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
@@ -60,29 +75,82 @@ class _DashboardState extends State<Dashboard> {
                           expandedHeight: 80,
                           flexibleSpace: FlexibleSpaceBar(
                             title: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: loggedInUsersDashboard
+                                  ? MainAxisAlignment.center
+                                  : MainAxisAlignment.spaceAround,
                               children: [
-                                Text("Dashboard"),
-                                SizedBox(width: 10),
-                                InkWell(
-                                  onTap: () => _auth!.signOut(),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 7,
-                                      vertical: 5,
-                                    ),
-                                    child: Text(
-                                      "Logout",
-                                      style: TextStyle(
-                                        fontSize: 11,
+                                loggedInUsersDashboard
+                                    ? SizedBox()
+                                    : InkWell(
+                                        onTap: () =>
+                                            Navigator.of(context).pop(),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(3.0),
+                                          child: Icon(
+                                            Icons.arrow_back_ios_new_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
+                                Text(
+                                    "${loggedInUsersDashboard ? 'Dashboard' : 'View Profile'}"),
+                                SizedBox(width: 10),
+                                loggedInUsersDashboard
+                                    ? InkWell(
+                                        onTap: () => _auth!.signOut(),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 7,
+                                            vertical: 5,
+                                          ),
+                                          child: Text(
+                                            "Logout",
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : InkWell(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => ChatScreen(
+                                                user: _loggedInUser!,
+                                                otherUid: snap.data!.uid,
+                                                otherName: snap.data!.name,
+                                                otherEmail: snap.data!.email,
+                                                otherPhotoUrl:
+                                                    snap.data!.photoUrl,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 7,
+                                            vertical: 5,
+                                          ),
+                                          child: Text(
+                                            "Message",
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: MyColor.primaryColor,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                               ],
                             ),
                             centerTitle: true,
@@ -102,12 +170,23 @@ class _DashboardState extends State<Dashboard> {
                                   children: [
                                     Container(
                                       child: ProfileHeader(
-                                          user: _user, radius: 100),
+                                        user: loggedInUsersDashboard
+                                            ? _loggedInUser
+                                            : null,
+                                        photoUrl: snap.data!.photoUrl,
+                                        radius: 100,
+                                        state: loggedInUsersDashboard
+                                            ? snap.data!.state
+                                            : null,
+                                        city: loggedInUsersDashboard
+                                            ? snap.data!.city
+                                            : null,
+                                      ),
                                     ),
                                     SizedBox(height: 15),
                                     Container(
                                       child: Text(
-                                        "${_user?.displayName ?? ''}",
+                                        "${snap.data!.name}",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontSize: 24,
@@ -127,7 +206,7 @@ class _DashboardState extends State<Dashboard> {
                                     ),
                                     SizedBox(height: 3),
                                     Text(
-                                      "${_user!.email}",
+                                      "${snap.data!.email}",
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: Colors.white,
@@ -251,7 +330,7 @@ class _DashboardState extends State<Dashboard> {
           //                             barrierDismissible: false,
           //                             context: context,
           //                             builder: (context) {
-          //                               return CreateService(_user!.uid);
+          //                               return CreateService(widget.showUser!.uid);
           //                             },
           //                           );
           //                         },
@@ -266,7 +345,7 @@ class _DashboardState extends State<Dashboard> {
           //               ),
           //               SliverToBoxAdapter(
           //                 child: StreamBuilder<List<Service>>(
-          //                     stream: ServiceModel.getServices(_user!.uid),
+          //                     stream: ServiceModel.getServices(widget.showUser!.uid),
           //                     builder: (context, snapshot) {
           //                       if (snapshot.hasData &&
           //                           snapshot.data!.length > 0) {
@@ -329,7 +408,7 @@ class _DashboardState extends State<Dashboard> {
           //                                                       (val) async {
           //                                                     await ServiceModel
           //                                                         .changeServiceState(
-          //                                                       _user!.uid,
+          //                                                       widget.showUser!.uid,
           //                                                       curService
           //                                                           .timestamp
           //                                                           .millisecondsSinceEpoch

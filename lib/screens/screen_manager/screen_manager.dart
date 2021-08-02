@@ -31,7 +31,10 @@ class ScreenManager extends StatelessWidget {
                   switch (currentScreenIndex) {
                     case -1:
                       if (snapshot.data == true)
-                        currentScreen = Dashboard();
+                        currentScreen = Dashboard(
+                          displayUsersUid: user!.uid,
+                          loggedInUserUid: user.uid,
+                        );
                       else
                         currentScreen = HomeScreen();
                       break;

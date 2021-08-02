@@ -188,6 +188,7 @@ class _OtpDialogState extends State<OtpDialog> {
       await Database().addAdditionalInfoAndSwitchToFreelancer(
         uid: _user!.uid,
         name: _user?.displayName ?? "",
+        email: _user!.email!,
         photoUrl: _user?.photoURL ?? UserModel.defaultPhotoUrl,
         state: widget.state,
         city: widget.city,

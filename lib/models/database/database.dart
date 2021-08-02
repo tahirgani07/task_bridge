@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:task_bridge/models/user/my_user.dart';
 
 class Database {
   // Making this class a singleton.
@@ -26,7 +25,7 @@ class Database {
       print("New User!");
       await db.collection("users").doc(user.uid).set({
         "freelancer": false,
-        "id": user.uid,
+        "uid": user.uid,
         "name": name != null ? name : user.displayName,
         "photoUrl": photoUrl != null ? photoUrl : user.photoURL,
         "email": user.email,
@@ -53,6 +52,7 @@ class Database {
   Future<bool> addAdditionalInfoAndSwitchToFreelancer({
     required String uid,
     required String name,
+    required String email,
     required String photoUrl,
     required String state,
     required String city,
@@ -105,6 +105,7 @@ class Database {
         "uid": uid,
         "photoUrl": photoUrl,
         "name": name,
+        "email": email,
         "state": state,
         "city": city,
         "tags": [],
@@ -160,7 +161,7 @@ class Database {
     });
   }
 
-  Future checkIfUserIsAddedToMsgList({
+  Future<bool> checkIfUserIsAddedToMsgList({
     required String uid1,
     required String name1,
     required String email1,
@@ -170,6 +171,7 @@ class Database {
     required String email2,
     required String photoUrl2,
   }) async {
+    bool success = true;
     try {
       // Checking if user2 exists in user1
       DocumentSnapshot snap1 = await db
@@ -187,9 +189,6 @@ class Database {
             .doc(uid2)
             .set({
           "uid": uid2,
-          "photoUrl": photoUrl2,
-          "email": email2,
-          "name": name2,
         });
       }
 
@@ -209,13 +208,33 @@ class Database {
             .doc(uid1)
             .set({
           "uid": uid1,
-          "photoUrl": photoUrl1,
-          "email": email1,
-          "name": name1,
         });
       }
     } catch (e) {
       print(e.toString());
+      success = false;
     }
+    return success;
+  }
+
+  Future updatePhotoUrl(
+      String uid, String url, String state, String city) async {
+    bool success = true;
+    await db.collection("users").doc(uid).update({
+      "photoUrl": url,
+    }).onError((error, stackTrace) => success = false);
+
+    await db
+        .collection("states")
+        .doc(state)
+        .collection("city")
+        .doc(city)
+        .collection("freelancers")
+        .doc(uid)
+        .update({
+      "photoUrl": url,
+    }).onError((error, stackTrace) => success = false);
+
+    return success;
   }
 }

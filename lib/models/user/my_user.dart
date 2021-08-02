@@ -1,5 +1,7 @@
 class MyUser {
+  final String uid;
   final String name;
+  final String email;
   final String photoUrl;
   final String state;
   final String city;
@@ -8,7 +10,9 @@ class MyUser {
   List tags;
 
   MyUser({
+    required this.uid,
     required this.name,
+    required this.email,
     required this.photoUrl,
     required this.state,
     required this.city,

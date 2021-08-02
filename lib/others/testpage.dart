@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/services/service_model.dart';
 
 class TestPage extends StatefulWidget {
@@ -7,61 +8,150 @@ class TestPage extends StatefulWidget {
 }
 
 class _TestPageState extends State<TestPage> {
-  String uid = "B5IsjXLRWkTc8FQjgPp4omTLWb93";
   @override
   Widget build(BuildContext context) {
+    List<Question> questions = [
+      Question(
+        question:
+            "व्यक्तिगत प्रशिक्षक निम्नलिखित में से क्या करने के लिए बाध्य हैं?",
+        op1:
+            "सुनिश्चित करें कि सुविधाएं और कार्यक्षेत्र अनुचित खतरों से मुक्त हैं।",
+        op2: "सुनिश्चित करें कि ग्राहकों के पास बाथरूम और पानी की सुविधा है।",
+        op3:
+            "ए और बी दोनों, और यह सुनिश्चित करना कि आपात स्थिति में ग्राहकों की इंटरनेट तक पहुंच हो।",
+        op4: "केवल ए और बी दोनों।",
+        answer: "केवल ए और बी दोनों।",
+      ),
+      Question(
+        question:
+            "यदि किसी ग्राहक को मधुमेह है, तो आपको व्यायाम से कब बचना चाहिए?",
+        op1: "पीक इंसुलिन गतिविधि की अवधि के दौरान",
+        op2: "जब इंसुलिन गतिविधि का स्तर समाप्त हो जाता है",
+        op3: "जब वे एक खिलाई गई अवस्था में हों",
+        op4: "प्रातः काल",
+        answer: "जब इंसुलिन गतिविधि का स्तर समाप्त हो जाता है",
+      ),
+      Question(
+        question:
+            "यदि किसी ग्राहक को स्टेज II उच्च रक्तचाप है, तो आपको किससे बचना चाहिए?",
+        op1: "व्यायाम जो उनके सिर को उनके दिल के नीचे रखते हैं",
+        op2: "व्यायाम जो उनके सिर को उनके दिल से ऊपर रखते हैं",
+        op3: "व्यायाम जो उनके सिर को उनके दिल के अनुरूप रखते हैं",
+        op4: "व्यायाम जो उनकी हृदय गति को बढ़ाते हैं",
+        answer: "व्यायाम जो उनके सिर को उनके दिल के नीचे रखते हैं",
+      ),
+      Question(
+        question:
+            "आप देखते हैं कि आपका ग्राहक, जिसे 3 महीने का प्रशिक्षण अनुभव है और जिसे उच्च रक्तचाप है, भारी प्रतिनिधि के संकेंद्रित चरण के दौरान अपनी सांस रोक रहा है। तुम्हे क्या करना चाहिए?",
+        op1:
+            "उसे अपनी सांस रोकने की अनुमति दें, बढ़े हुए इंट्रा-पेट के दबाव को देखते हुए प्रतिनिधि के दौरान शामिल जोड़ों पर अधिक बल पैदा करने में मदद मिलती है।",
+        op2:
+            "अनुशंसा करें कि वह केवल कठिन दोहराव के दौरान ही अपनी सांस रोक कर रखें क्योंकि इससे प्रदर्शन में मदद मिलती है।",
+        op3:
+            "कठिन दोहराव के दौरान अपनी सांस को रोककर न रखने की सलाह दें क्योंकि यह रक्तचाप के लिए खराब हो सकता है।",
+        op4:
+            "सलाह दें कि अपनी सांस को रोककर न रखें, और जितनी जल्दी हो सके सांस लें ताकि वह सेट के दौरान सक्रिय मांसपेशियों को ईंधन देने के लिए अधिक ऑक्सीजन का सेवन कर सके।",
+        answer:
+            "कठिन दोहराव के दौरान अपनी सांस को रोककर न रखने की सलाह दें क्योंकि यह रक्तचाप के लिए खराब हो सकता है।",
+      ),
+      Question(
+        question:
+            "एक ग्राहक जितना संभव हो सके स्वस्थ रहना चाहता है और मांसपेशियों का निर्माण भी करना चाहता है। आपको क्या निर्धारित करना चाहिए?",
+        op1: "एक प्रतिरोध प्रशिक्षण कार्यक्रम",
+        op2: "एक कार्डियोरेस्पिरेटरी फिटनेस प्रोग्राम",
+        op3: "एक लचीलापन और गतिशीलता कार्यक्रम",
+        op4: "ऊपर के सभी",
+        answer: "ऊपर के सभी",
+      ),
+      Question(
+        question:
+            "अपने ग्राहकों के लिए एक विशिष्ट आहार योजना की पेशकश करना अभ्यास के दायरे में माना जाता है।",
+        op1: "सच",
+        op2: "असत्य",
+        op3: "",
+        op4: "",
+        answer: "असत्य",
+      ),
+      Question(
+        question:
+            "गतिशील हिस्सों को कम से कम 30 सेकंड के लिए आयोजित किया जाना चाहिए।",
+        op1: "सच",
+        op2: "असत्य",
+        op3: "",
+        op4: "",
+        answer: "असत्य",
+      ),
+      Question(
+        question:
+            "मानव शरीर को स्वस्थ रहने के लिए आवश्यक छह आवश्यक पोषक तत्वों के नाम बताइए।",
+        op1: "वसा, प्रोटीन, कार्बोहाइड्रेट, मांस, चीनी, विटामिन",
+        op2: "वसा, प्रोटीन, सब्जियां, विटामिन, खनिज, पानी",
+        op3: "वसा, प्रोटीन, चीनी, मांस, सब्जियां, पानी",
+        op4: "वसा, प्रोटीन, कार्बोहाइड्रेट, पानी, विटामिन, खनिज",
+        answer: "वसा, प्रोटीन, कार्बोहाइड्रेट, पानी, विटामिन, खनिज",
+      ),
+      Question(
+        question:
+            ". एक युवती ने आपको अपना प्रशिक्षक बना लिया है। वह अपने शुरुआती 20 के दशक में है, बहुत फिट प्रतीत होती है, उसके उचित वजन सीमा के भीतर है और उसे कोई ज्ञात स्वास्थ्य चिंता नहीं है। यह सब देखते हुए, आपको सबसे पहले क्या करना चाहिए",
+        op1: "उसे एक अनुबंध पर हस्ताक्षर करने के लिए प्राप्त करें",
+        op2: "उसका बीएमआई खोजें",
+        op3: "कुल फिटनेस मूल्यांकन करें",
+        op4: "चर्चा करें और उसे एक सूचित सहमति पर हस्ताक्षर करें",
+        answer: "चर्चा करें और उसे एक सूचित सहमति पर हस्ताक्षर करें",
+      ),
+      Question(
+        question:
+            "उच्च रक्तचाप से ग्रस्त रोगी के लिए व्यायाम की तीव्रता की सिफारिश क्या है?",
+        op1: "अधिकतम एचआर का 70-80%",
+        op2: "VO2 मैक्स का 40-50%",
+        op3: "9-13 . का आरपीई",
+        op4: "VT2 . का 40-60%",
+        answer: "9-13 . का आरपीई",
+      ),
+    ];
+    print(questions.length);
     return Scaffold(
-      body: StreamBuilder<List<Service>>(
-          stream: ServiceModel.getServices(uid),
-          builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data!.length > 0) {
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, ind) {
-                  Service curService = snapshot.data![ind];
-                  return Material(
-                    elevation: 5,
-                    child: Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Text("${curService.name}"),
-                              Text(
-                                "Rs. ${curService.price.toStringAsFixed(2)}",
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Text("${curService.desc}"),
-                              Text(
-                                "Rs. ${curService.active}",
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            }
-            return Container(
-              child: Center(
-                child: Text(
-                  "No Services Added yet!",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            );
-          }),
+      body: Center(
+        child: ElevatedButton(
+          child: Text("Add to DB"),
+          onPressed: () async {
+            questions.forEach((q) async {
+              await Database()
+                  .db
+                  .collection("tags")
+                  .doc("personal trainer")
+                  .collection("quiz-hindi")
+                  .add({
+                "question": q.question,
+                "op1": q.op1,
+                "op2": q.op2,
+                "op3": q.op3,
+                "op4": q.op4,
+                "answer": q.answer,
+              });
+              print("DONE");
+            });
+          },
+        ),
+      ),
     );
   }
+}
+
+class Question {
+  final String question;
+  final String op1;
+  final String op2;
+  final String op3;
+  final String op4;
+  final String answer;
+
+  Question({
+    required this.question,
+    required this.op1,
+    required this.op2,
+    required this.op3,
+    required this.op4,
+    required this.answer,
+  });
 }

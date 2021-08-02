@@ -7,6 +7,7 @@ import 'package:task_bridge/models/bottom_nav_bar/bottom_nav_bar_model.dart';
 import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/my_user.dart';
 import 'package:task_bridge/models/user/user_model.dart';
+import 'package:task_bridge/screens/dashboard/dashboard.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_dialog.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_header.dart';
 
@@ -23,9 +24,9 @@ class _HomeScreenState extends State<HomeScreen> {
     Professions("Electrician", "assets/images/electrician-icon.png"),
     Professions("Carpenter", "assets/images/carpenter-icon.png"),
     Professions("Personal Trainer", "assets/images/personal-trainer.png"),
-    Professions("Plumber", "assets/images/plumber-icon.png"),
-    Professions("Electrician", "assets/images/electrician-icon.png"),
-    Professions("Carpenter", "assets/images/carpenter-icon.png"),
+    Professions("Beautician", "assets/images/beautician-icon.png"),
+    Professions("Cleaner", "assets/images/cleaner-icon.png"),
+    Professions("Event Manager", "assets/images/event-management-icon.png"),
   ];
 
   User? user;
@@ -46,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     //   loading = true;
     // });
     user = Provider.of<User?>(context);
-    _curUser = await UserModel.getCurrentUserDetails(user!.uid);
+    _curUser = await UserModel.getParticularUserDetails(user!.uid);
     _searchState = UserModel.isFreelancer ? _curUser!.state : "Maharashtra";
     _searchCity = UserModel.isFreelancer ? _curUser!.city : "Mumbai";
     _freelancersList = await UserModel.getAllUsersDetails(
@@ -196,7 +197,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 return Container(
                   height: 100,
                   child: ListTile(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => Dashboard(
+                            displayUsersUid: cur.uid,
+                            loggedInUserUid: _curUser!.uid,
+                          ),
+                        ),
+                      );
+                    },
                     leading: ClipOval(
                       child: CachedNetworkImage(
                         imageUrl: _searchList[ind].photoUrl,

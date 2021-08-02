@@ -12,7 +12,12 @@ class UserModel {
       "https://firebasestorage.googleapis.com/v0/b/task-bridge-f9e1f.appspot.com/o/user%2Fprofile%2Fdefault-avatar.png?alt=media&token=a96179ea-75fa-46e6-9155-90cacea732e0";
   static FirebaseStorage storage = FirebaseStorage.instance;
   // FirebaseStorage(storageBucket: "gs://task-bridge-f9e1f.appspot.com");
-  static Future<bool> updateProfilePhoto(File file, User user) async {
+  static Future<bool> updateProfilePhoto(
+    File file,
+    User user,
+    String state,
+    String city,
+  ) async {
     bool success = true;
     var storageRef = storage.ref().child("user/profile/${user.uid}");
     var uploadTask = storageRef.putFile(file);
@@ -23,6 +28,14 @@ class UserModel {
     await user
         .updatePhotoURL(downloadUrl)
         .onError((error, stackTrace) => success = false);
+
+    await Database().updatePhotoUrl(
+      user.uid,
+      downloadUrl,
+      state,
+      city,
+    );
+
     return success;
   }
 
@@ -30,7 +43,9 @@ class UserModel {
 
   static MyUser _convertDocSnapshot(DocumentSnapshot doc) {
     return MyUser(
+      uid: doc["uid"],
       name: doc["name"],
+      email: doc["email"],
       photoUrl: doc["photoUrl"],
       state: doc["state"],
       city: doc["city"],
@@ -40,7 +55,7 @@ class UserModel {
     );
   }
 
-  static Future<MyUser> getCurrentUserDetails(String uid) async {
+  static Future<MyUser> getParticularUserDetails(String uid) async {
     return _convertDocSnapshot(
         await Database().db.collection("users").doc(uid).get());
   }
@@ -49,7 +64,9 @@ class UserModel {
     try {
       return snapshot.docs.map((doc) {
         return MyUser(
+          uid: doc["uid"],
           name: doc["name"],
+          email: doc["email"],
           photoUrl: doc["photoUrl"],
           state: doc["state"],
           city: doc["city"],

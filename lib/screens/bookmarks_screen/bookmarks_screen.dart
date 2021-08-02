@@ -14,8 +14,10 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
     return Center(
       child: ElevatedButton(
         child: Text("GO"),
-        onPressed: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => TestPage())),
+        onPressed: () {
+          // Navigator.of(context)
+          //     .push(MaterialPageRoute(builder: (context) => TestPage()));
+        },
       ),
     );
   }

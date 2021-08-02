@@ -10,9 +10,20 @@ import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
 
 class ProfileHeader extends StatefulWidget {
   final User? user;
+  final String? photoUrl;
   final double radius;
   final Function? onTap;
-  const ProfileHeader({required this.user, required this.radius, this.onTap});
+  final String? state;
+  final String? city;
+
+  const ProfileHeader({
+    this.user,
+    required this.radius,
+    this.onTap,
+    this.photoUrl,
+    this.state,
+    this.city,
+  });
 
   @override
   _ProfileHeaderState createState() => _ProfileHeaderState();
@@ -36,40 +47,33 @@ class _ProfileHeaderState extends State<ProfileHeader> {
             )
           ],
         ),
-        child: (widget.user != null)
-            ? InkWell(
-                borderRadius: BorderRadius.circular(100),
-                onTap: () async {
-                  if (widget.onTap == null)
-                    await _updateProfilePic(widget.user);
-                  else
-                    widget.onTap!();
-                },
-                child: CircleAvatar(
-                  radius: widget.radius,
-                  backgroundColor: Colors.white,
-                  child: ClipOval(
-                    child: CachedNetworkImage(
-                      imageUrl:
-                          widget.user!.photoURL ?? UserModel.defaultPhotoUrl,
-                      progressIndicatorBuilder:
-                          (context, url, downloadProgress) =>
-                              CircularProgressIndicator(
-                        value: downloadProgress.progress,
-                      ),
-                      errorWidget: (context, url, error) => Icon(Icons.error),
-                      fit: BoxFit.contain,
-                      width: widget.radius,
-                      height: widget.radius,
-                    ),
-                  ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(100),
+          onTap: () async {
+            if (widget.user != null && widget.onTap == null)
+              await _updateProfilePic(widget.user);
+            else if (widget.onTap != null) widget.onTap!();
+          },
+          child: CircleAvatar(
+            radius: widget.radius,
+            backgroundColor: Colors.white,
+            child: ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: widget.user == null
+                    ? widget.photoUrl!
+                    : widget.user!.photoURL!,
+                progressIndicatorBuilder: (context, url, downloadProgress) =>
+                    CircularProgressIndicator(
+                  value: downloadProgress.progress,
                 ),
-              )
-            : Center(
-                child: Container(
-                  child: Icon(Icons.person),
-                ),
+                errorWidget: (context, url, error) => Icon(Icons.error),
+                fit: BoxFit.contain,
+                width: widget.radius,
+                height: widget.radius,
               ),
+            ),
+          ),
+        ),
       );
     } catch (e) {
       print(e);
@@ -82,7 +86,12 @@ class _ProfileHeaderState extends State<ProfileHeader> {
     final PickedFile? file =
         await ImagePicker().getImage(source: ImageSource.gallery);
     if (file != null) {
-      bool success = await UserModel.updateProfilePhoto(File(file.path), user!);
+      bool success = await UserModel.updateProfilePhoto(
+        File(file.path),
+        user!,
+        widget.state!,
+        widget.city!,
+      );
     }
     LoadingDialog.dismissLoadingDialog(context);
   }
