@@ -41,11 +41,6 @@ class _AllChatsScreenState extends State<AllChatsScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
     _user = Provider.of<User?>(context);
 

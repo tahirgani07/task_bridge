@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
+import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
 import 'package:task_bridge/screens/additional_info/additional_info.dart';
@@ -158,14 +159,13 @@ class _ProfileDialogState extends State<ProfileDialog> {
 
     String title = "Successfull", message = "Name updated";
     LoadingDialog.showLoadingDialog(context);
-    await user.updateDisplayName(newName).onError((error, stackTrace) {
+
+    bool success = await Database().updateDisplayName(user, newName);
+    if (!success) {
       title = "Error";
-      try {
-        message = error.toString();
-      } catch (e) {
-        print(e);
-      }
-    });
+      message = "Something went wrong";
+    }
+
     _updateShowEditNameTextField(false);
     // Get rid of the loading popup
     LoadingDialog.dismissLoadingDialog(context);

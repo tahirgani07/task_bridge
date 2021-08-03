@@ -89,9 +89,12 @@ class _ProfileHeaderState extends State<ProfileHeader> {
       bool success = await UserModel.updateProfilePhoto(
         File(file.path),
         user!,
-        widget.state!,
-        widget.city!,
+        widget.state,
+        widget.city,
       );
+      if (!success) {
+        print("Photo could not be updated");
+      }
     }
     LoadingDialog.dismissLoadingDialog(context);
   }

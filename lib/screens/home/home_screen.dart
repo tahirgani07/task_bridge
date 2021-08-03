@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     _freelancersList.forEach((elem) {
-      if (_searchList.contains(elem)) return;
+      if (elem.uid == user!.uid || _searchList.contains(elem)) return;
       if (elem.name.toLowerCase().contains(text.toLowerCase())) {
         _searchList.add(elem);
       } else {

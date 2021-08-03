@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:task_bridge/models/user/user_model.dart';
 
 class Database {
   // Making this class a singleton.
@@ -218,23 +219,94 @@ class Database {
   }
 
   Future updatePhotoUrl(
-      String uid, String url, String state, String city) async {
+      String uid, String url, String? state, String? city) async {
     bool success = true;
     await db.collection("users").doc(uid).update({
       "photoUrl": url,
     }).onError((error, stackTrace) => success = false);
 
-    await db
-        .collection("states")
-        .doc(state)
-        .collection("city")
-        .doc(city)
-        .collection("freelancers")
-        .doc(uid)
-        .update({
-      "photoUrl": url,
-    }).onError((error, stackTrace) => success = false);
+    if (success)
+      await db.collection("users").doc(uid).update({
+        "photoUrl": url,
+      }).onError((error, stackTrace) => success = false);
 
+    if (success && UserModel.isFreelancer) {
+      DocumentSnapshot docSnap = await db.collection("users").doc(uid).get();
+      String state = docSnap["state"];
+      String city = docSnap["city"];
+      await db
+          .collection("states")
+          .doc(state)
+          .collection("city")
+          .doc(city)
+          .collection("freelancers")
+          .doc(uid)
+          .update({
+        "photoUrl": url,
+      }).onError((error, stackTrace) => success = false);
+    }
+
+    return success;
+  }
+
+  Future updateDisplayName(User user, String newName) async {
+    bool success = true;
+    await user.updateDisplayName(newName).onError((error, stackTrace) {
+      success = false;
+    });
+    if (success)
+      await db.collection("users").doc(user.uid).update({
+        "name": newName,
+      }).onError((error, stackTrace) => success = false);
+
+    if (success && UserModel.isFreelancer) {
+      DocumentSnapshot docSnap =
+          await db.collection("users").doc(user.uid).get();
+      String state = docSnap["state"];
+      String city = docSnap["city"];
+      await db
+          .collection("states")
+          .doc(state)
+          .collection("city")
+          .doc(city)
+          .collection("freelancers")
+          .doc(user.uid)
+          .update({
+        "name": newName,
+      }).onError((error, stackTrace) => success = false);
+    }
+
+    return success;
+  }
+
+  Future<bool> bookmarkUser({
+    required String userUid,
+    required String bookmarkUserUid,
+  }) async {
+    bool success = true;
+    await db
+        .collection("users")
+        .doc(userUid)
+        .collection("bookmarks")
+        .doc(bookmarkUserUid)
+        .set({
+      "uid": bookmarkUserUid,
+    }).onError((error, stackTrace) => success = false);
+    return success;
+  }
+
+  Future<bool> deleteBookmark({
+    required String userUid,
+    required String bookmarkUserUid,
+  }) async {
+    bool success = true;
+    await db
+        .collection("users")
+        .doc(userUid)
+        .collection("bookmarks")
+        .doc(bookmarkUserUid)
+        .delete()
+        .onError((error, stackTrace) => success = false);
     return success;
   }
 }

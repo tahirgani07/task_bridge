@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:another_flushbar/flushbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -164,103 +165,179 @@ class _DashboardState extends State<Dashboard> {
                               elevation: 5,
                               color: MyColor.primaryColor,
                               borderRadius: BorderRadius.circular(20),
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      child: ProfileHeader(
-                                        user: loggedInUsersDashboard
-                                            ? _loggedInUser
-                                            : null,
-                                        photoUrl: snap.data!.photoUrl,
-                                        radius: 100,
-                                        state: loggedInUsersDashboard
-                                            ? snap.data!.state
-                                            : null,
-                                        city: loggedInUsersDashboard
-                                            ? snap.data!.city
-                                            : null,
-                                      ),
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    right: 15,
+                                    top: 15,
+                                    child: StreamBuilder<List<String>>(
+                                      stream: UserModel.getBookmarks(
+                                          widget.loggedInUserUid),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          List<String> bookmarks =
+                                              snapshot.data!;
+                                          if (bookmarks.contains(
+                                              widget.displayUsersUid)) {
+                                            return InkWell(
+                                              onTap: () async {
+                                                bool success = await Database()
+                                                    .deleteBookmark(
+                                                  userUid:
+                                                      widget.loggedInUserUid,
+                                                  bookmarkUserUid:
+                                                      widget.displayUsersUid,
+                                                );
+                                                if (!success) {
+                                                  print(
+                                                      "Something went wrong while deleting the bookmark");
+                                                } else {
+                                                  Flushbar(
+                                                          message:
+                                                              "Bookmark deleted successfully")
+                                                      .show(context);
+                                                }
+                                              },
+                                              child: Icon(
+                                                Icons.bookmark_added,
+                                                size: 35,
+                                                color: Colors.white,
+                                              ),
+                                            );
+                                          } else {
+                                            return InkWell(
+                                              onTap: () async {
+                                                bool success = await Database()
+                                                    .bookmarkUser(
+                                                  userUid:
+                                                      widget.loggedInUserUid,
+                                                  bookmarkUserUid:
+                                                      widget.displayUsersUid,
+                                                );
+                                                if (!success) {
+                                                  print(
+                                                      "Something went wrong while bookmarking");
+                                                } else {
+                                                  Flushbar(
+                                                          message:
+                                                              "Bookmark added successfully")
+                                                      .show(context);
+                                                }
+                                              },
+                                              child: Icon(
+                                                Icons.bookmark_add,
+                                                size: 35,
+                                                color: Colors.white,
+                                              ),
+                                            );
+                                          }
+                                        } else {
+                                          return SizedBox();
+                                        }
+                                      },
                                     ),
-                                    SizedBox(height: 15),
-                                    Container(
-                                      child: Text(
-                                        "${snap.data!.name}",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(20),
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          child: ProfileHeader(
+                                            user: loggedInUsersDashboard
+                                                ? _loggedInUser
+                                                : null,
+                                            photoUrl: snap.data!.photoUrl,
+                                            radius: 100,
+                                            state: loggedInUsersDashboard
+                                                ? snap.data!.state
+                                                : null,
+                                            city: loggedInUsersDashboard
+                                                ? snap.data!.city
+                                                : null,
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                    Text(
-                                      "${snap.data!.state}, ${snap.data!.city}",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    SizedBox(height: 3),
-                                    Text(
-                                      "${snap.data!.email}",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    SizedBox(height: 5),
-                                    Text(
-                                      "Tags:",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      "$curTags",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    SizedBox(height: 20),
-                                    Material(
-                                      color: Colors.white38,
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(30),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            _getComponent(
-                                              "${snap.data!.rating.toStringAsPrecision(2)}",
-                                              "Rating",
-                                              Icons.star,
-                                              24,
+                                        SizedBox(height: 15),
+                                        Container(
+                                          child: Text(
+                                            "${snap.data!.name}",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white,
                                             ),
-                                            _getComponent(
-                                              "${snap.data!.workDone}",
-                                              "Works Completed",
-                                              Icons.work,
-                                              22,
-                                            ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
+                                        Text(
+                                          "${snap.data!.state}, ${snap.data!.city}",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        SizedBox(height: 3),
+                                        Text(
+                                          "${snap.data!.email}",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        SizedBox(height: 5),
+                                        Text(
+                                          "Tags:",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          "$curTags",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        SizedBox(height: 20),
+                                        Material(
+                                          color: Colors.white38,
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          child: Padding(
+                                            padding: EdgeInsets.all(30),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                _getComponent(
+                                                  "${snap.data!.rating.toStringAsPrecision(2)}",
+                                                  "Rating",
+                                                  Icons.star,
+                                                  24,
+                                                ),
+                                                _getComponent(
+                                                  "${snap.data!.workDone}",
+                                                  "Works Completed",
+                                                  Icons.work,
+                                                  22,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),

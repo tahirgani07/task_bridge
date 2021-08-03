@@ -15,8 +15,8 @@ class UserModel {
   static Future<bool> updateProfilePhoto(
     File file,
     User user,
-    String state,
-    String city,
+    String? state,
+    String? city,
   ) async {
     bool success = true;
     var storageRef = storage.ref().child("user/profile/${user.uid}");
@@ -104,5 +104,21 @@ class UserModel {
       return _convertSnapshots(snapshot!);
     else
       return [];
+  }
+
+  static List<String> _convertBookmarkSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return doc["uid"].toString();
+    }).toList();
+  }
+
+  static Stream<List<String>> getBookmarks(String uid) {
+    return Database()
+        .db
+        .collection("users")
+        .doc(uid)
+        .collection("bookmarks")
+        .snapshots()
+        .map(_convertBookmarkSnapshot);
   }
 }
