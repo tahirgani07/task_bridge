@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:task_bridge/models/database/database.dart';
-import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
+import 'package:task_bridge/others/my_alerts/show_alert.dart';
 import 'package:task_bridge/others/my_colors.dart';
 import 'package:task_bridge/screens/authentication/auth_manager.dart';
 
@@ -155,14 +155,14 @@ class _TagsScreenState extends State<TagsScreen> {
     bool noSelect = false;
     if (_selectedTags.isEmpty) noSelect = true;
     if (!noSelect) {
-      LoadingDialog.showLoadingDialog(context);
+      ShowAlert.showLoadingDialog(context);
       bool success = await Database().addtags(
         uid: widget.uid,
         tags: _selectedTags,
         state: widget.state,
         city: widget.city,
       );
-      LoadingDialog.dismissLoadingDialog(context);
+      ShowAlert.dismissLoadingDialog(context);
       if (!success) {
         Flushbar(
           title: "Error",

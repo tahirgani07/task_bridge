@@ -7,6 +7,7 @@ class MyUser {
   final String city;
   final double rating;
   final int workDone;
+  final bool quizTaken;
   List tags;
 
   MyUser({
@@ -18,6 +19,7 @@ class MyUser {
     required this.city,
     required this.rating,
     required this.workDone,
+    this.quizTaken: false,
     required this.tags,
   });
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -52,6 +53,7 @@ class UserModel {
       tags: doc["tags"] ?? [],
       rating: doc["rating"].toDouble() ?? 0,
       workDone: doc["workDone"].toInt() ?? 0,
+      quizTaken: doc["quizTaken"],
     );
   }
 
@@ -120,5 +122,18 @@ class UserModel {
         .collection("bookmarks")
         .snapshots()
         .map(_convertBookmarkSnapshot);
+  }
+
+  static String getCombinedUid(String uid1, String uid2) {
+    int i = 0;
+    int minLen = min(uid1.length, uid2.length);
+    while (i < minLen) {
+      if (uid1.codeUnits[i] < uid2.codeUnits[i])
+        return uid1 + uid2;
+      else if (uid1.codeUnits[i] > uid2.codeUnits[i]) return uid2 + uid1;
+      i++;
+    }
+    if (uid1.length < uid2.length) return uid1 + uid2;
+    return uid2 + uid1;
   }
 }

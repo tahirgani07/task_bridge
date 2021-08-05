@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:task_bridge/models/database/database.dart';
+import 'package:task_bridge/models/quiz_model/quiz_model.dart';
 import 'package:task_bridge/models/services/service_model.dart';
 
 class TestPage extends StatefulWidget {
@@ -136,22 +137,4 @@ class _TestPageState extends State<TestPage> {
       ),
     );
   }
-}
-
-class Question {
-  final String question;
-  final String op1;
-  final String op2;
-  final String op3;
-  final String op4;
-  final String answer;
-
-  Question({
-    required this.question,
-    required this.op1,
-    required this.op2,
-    required this.op3,
-    required this.op4,
-    required this.answer,
-  });
 }

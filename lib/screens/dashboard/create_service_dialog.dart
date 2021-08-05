@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/services/service_model.dart';
-import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
+import 'package:task_bridge/others/my_alerts/show_alert.dart';
 import 'package:task_bridge/others/my_colors.dart';
 
 class CreateService extends StatefulWidget {
-  final String uid;
-  CreateService(this.uid);
+  final String creatorUid;
+  final String combinedUid;
+  CreateService({required this.creatorUid, required this.combinedUid});
 
   @override
   _CreateServiceState createState() => _CreateServiceState();
@@ -19,12 +20,12 @@ class _CreateServiceState extends State<CreateService> {
   TextEditingController _nameCtl = TextEditingController();
   TextEditingController _descCtl = TextEditingController();
   TextEditingController _priceCtl = TextEditingController();
-  TextEditingController _linkCtl = TextEditingController();
 
   FocusNode _nameFc = new FocusNode();
   FocusNode _descFc = new FocusNode();
   FocusNode _priceFc = new FocusNode();
-  FocusNode _linkFc = new FocusNode();
+
+  bool _priceVariable = false;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -33,11 +34,9 @@ class _CreateServiceState extends State<CreateService> {
     _nameCtl.dispose();
     _descCtl.dispose();
     _priceCtl.dispose();
-    _linkCtl.dispose();
     _nameFc.dispose();
     _descFc.dispose();
     _priceFc.dispose();
-    _linkFc.dispose();
     super.dispose();
   }
 
@@ -96,6 +95,7 @@ class _CreateServiceState extends State<CreateService> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              SizedBox(height: 5),
               _getTextField(
                 controller: _nameCtl,
                 focusNode: _nameFc,
@@ -112,6 +112,7 @@ class _CreateServiceState extends State<CreateService> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              SizedBox(height: 5),
               _getTextField(
                 controller: _descCtl,
                 focusNode: _descFc,
@@ -127,39 +128,41 @@ class _CreateServiceState extends State<CreateService> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              SizedBox(height: 5),
               _getTextField(
+                enabled: !_priceVariable,
                 controller: _priceCtl,
                 focusNode: _priceFc,
-                nextFocusNode: _linkFc,
                 label: "Enter a price",
                 validator: (val) {
-                  String er = _nullValidator(val ?? "", "Price") ?? "";
-                  if (er.isNotEmpty) return er;
-                  er = er.trimLeft();
-                  er = er.trimRight();
-                  er = "Please enter a valid Price";
-                  if (val![val.length - 1] == '.') return er;
-                  int dotCnt = 0;
-                  for (int i = 0; i < val.length; i++)
-                    if (val[i] == '.') dotCnt++;
-                  if (dotCnt > 1) return er;
+                  if (!_priceVariable) {
+                    String er = _nullValidator(val ?? "", "Price") ?? "";
+                    if (er.isNotEmpty) return er;
+                    er = er.trimLeft();
+                    er = er.trimRight();
+                    er = "Please enter a valid Price";
+                    if (val![val.length - 1] == '.') return er;
+                    int dotCnt = 0;
+                    for (int i = 0; i < val.length; i++)
+                      if (val[i] == '.') dotCnt++;
+                    if (dotCnt > 1) return er;
+                  }
                   return null;
                 },
                 digitsOnly: true,
               ),
-              SizedBox(height: 20),
-              Text(
-                "Link",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              _getTextField(
-                controller: _linkCtl,
-                focusNode: _linkFc,
-                label: "Enter a link to previous works",
-                validator: (val) {},
+              Row(
+                children: [
+                  Checkbox(
+                    value: _priceVariable,
+                    onChanged: (val) {
+                      setState(() {
+                        _priceVariable = val!;
+                      });
+                    },
+                  ),
+                  Flexible(child: Text("Price is not fixed or variable")),
+                ],
               ),
             ],
           ),
@@ -169,15 +172,15 @@ class _CreateServiceState extends State<CreateService> {
   }
 
   _addService() async {
-    LoadingDialog.showLoadingDialog(context);
-    String er = await ServiceModel.addService(
-      uid: widget.uid,
+    ShowAlert.showLoadingDialog(context);
+    String er = await ServiceModel.sendService(
+      creatorUid: widget.creatorUid,
+      combinedUid: widget.combinedUid,
       name: _nameCtl.text,
       desc: _descCtl.text,
-      price: double.parse(_priceCtl.text),
-      link: _linkCtl.text.isEmpty ? "" : _linkCtl.text,
+      price: !_priceVariable ? double.parse(_priceCtl.text) : -1,
     );
-    LoadingDialog.dismissLoadingDialog(context);
+    ShowAlert.dismissLoadingDialog(context);
 
     if (er.isEmpty) {
       Navigator.of(context).pop();
@@ -208,6 +211,7 @@ class _CreateServiceState extends State<CreateService> {
     required String? validator(String? val),
     bool digitsOnly: false,
     int? maxLength,
+    bool enabled: true,
   }) {
     return Theme(
       data: Theme.of(context).copyWith(primaryColor: Colors.red),
@@ -217,19 +221,28 @@ class _CreateServiceState extends State<CreateService> {
         obscureText: obscureText,
         validator: validator,
         maxLength: maxLength,
+        enabled: enabled,
         onEditingComplete: (nextFocusNode == null)
             ? () => focusNode.unfocus()
             : () => nextFocusNode.requestFocus(),
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w400,
+          color: !enabled ? Colors.grey[400] : Colors.black,
+        ),
         textInputAction: (nextFocusNode == null)
             ? TextInputAction.done
             : TextInputAction.next,
         decoration: InputDecoration(
           counterText: "",
-          enabledBorder: UnderlineInputBorder(
+          border: OutlineInputBorder(
             borderSide: BorderSide(
-              width: 0.5,
-              color: Color(0xffA0A8B6),
+              color: Colors.black,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: Colors.black,
             ),
           ),
           labelText: label,

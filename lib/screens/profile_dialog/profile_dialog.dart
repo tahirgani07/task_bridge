@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
 import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/user_model.dart';
-import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
+import 'package:task_bridge/others/my_alerts/show_alert.dart';
 import 'package:task_bridge/screens/additional_info/additional_info.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_header.dart';
 
@@ -158,7 +158,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
     }
 
     String title = "Successfull", message = "Name updated";
-    LoadingDialog.showLoadingDialog(context);
+    ShowAlert.showLoadingDialog(context);
 
     bool success = await Database().updateDisplayName(user, newName);
     if (!success) {
@@ -168,7 +168,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
 
     _updateShowEditNameTextField(false);
     // Get rid of the loading popup
-    LoadingDialog.dismissLoadingDialog(context);
+    ShowAlert.dismissLoadingDialog(context);
     Flushbar(
       title: "$title",
       message: "$message",

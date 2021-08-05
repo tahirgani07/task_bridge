@@ -1,12 +1,11 @@
 import 'dart:io';
 
-import 'package:another_flushbar/flushbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:task_bridge/models/user/user_model.dart';
-import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
+import 'package:task_bridge/others/my_alerts/show_alert.dart';
 
 class ProfileHeader extends StatefulWidget {
   final User? user;
@@ -82,7 +81,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
   }
 
   _updateProfilePic(User? user) async {
-    LoadingDialog.showLoadingDialog(context);
+    ShowAlert.showLoadingDialog(context);
     final PickedFile? file =
         await ImagePicker().getImage(source: ImageSource.gallery);
     if (file != null) {
@@ -96,6 +95,6 @@ class _ProfileHeaderState extends State<ProfileHeader> {
         print("Photo could not be updated");
       }
     }
-    LoadingDialog.dismissLoadingDialog(context);
+    ShowAlert.dismissLoadingDialog(context);
   }
 }

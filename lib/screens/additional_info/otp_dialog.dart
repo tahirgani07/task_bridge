@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
 import 'package:task_bridge/models/database/database.dart';
 import 'package:task_bridge/models/user/user_model.dart';
-import 'package:task_bridge/others/loading_dialog/loading_dialog.dart';
+import 'package:task_bridge/others/my_alerts/show_alert.dart';
 import 'package:task_bridge/others/my_colors.dart';
 import 'package:task_bridge/screens/additional_info/tags_screen.dart';
 import 'package:task_bridge/screens/authentication/auth_manager.dart';
@@ -171,12 +171,12 @@ class _OtpDialogState extends State<OtpDialog> {
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: widget.verificationId, smsCode: _otpCtl.text);
     bool success = true;
-    LoadingDialog.showLoadingDialog(context);
+    ShowAlert.showLoadingDialog(context);
     try {
       await _user!.linkWithCredential(credential);
     } catch (err) {
       success = false;
-      LoadingDialog.dismissLoadingDialog(context);
+      ShowAlert.dismissLoadingDialog(context);
       Flushbar(
         title: "ERROR",
         message: "${err.toString()}",
@@ -184,7 +184,7 @@ class _OtpDialogState extends State<OtpDialog> {
       ).show(context);
     }
     if (success) {
-      LoadingDialog.dismissLoadingDialog(context);
+      ShowAlert.dismissLoadingDialog(context);
       await Database().addAdditionalInfoAndSwitchToFreelancer(
         uid: _user!.uid,
         name: _user?.displayName ?? "",

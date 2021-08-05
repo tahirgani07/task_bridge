@@ -5,7 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:task_bridge/models/chats/chat_model.dart';
 import 'package:task_bridge/models/database/database.dart';
+import 'package:task_bridge/models/services/service_model.dart';
+import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/others/my_colors.dart';
+import 'package:task_bridge/screens/chats_screen/show_service_dialog.dart';
+import 'package:task_bridge/screens/dashboard/create_service_dialog.dart';
 
 class ChatScreen extends StatefulWidget {
   final User user;
@@ -52,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     });
-    _combinedUid = _getCombinedUid(widget.user.uid, widget.otherUid);
+    _combinedUid = UserModel.getCombinedUid(widget.user.uid, widget.otherUid);
     super.initState();
   }
 
@@ -75,235 +79,362 @@ class _ChatScreenState extends State<ChatScreen> {
             currentFocus.unfocus();
           }
         },
-        child: Scaffold(
-          backgroundColor: MyColor.subtleBg,
-          appBar: AppBar(
-            elevation: 10,
-            toolbarHeight: 60,
-            backgroundColor: MyColor.primaryColor,
-            leading: MaterialButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.white,
-              ),
-            ),
-            titleSpacing: 0,
-            title: Row(
-              children: [
-                Container(
-                  height: 50,
-                  width: 50,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(100),
-                    color: Colors.white,
-                  ),
-                  child: ClipOval(
-                    child: Material(
-                      color: Colors.white,
-                      child: CachedNetworkImage(
-                        imageUrl: "${widget.otherPhotoUrl}",
-                        progressIndicatorBuilder:
-                            (context, url, downloadProgress) =>
-                                CircularProgressIndicator(
-                          value: downloadProgress.progress,
-                        ),
-                        errorWidget: (context, url, error) => Icon(Icons.error),
-                        fit: BoxFit.contain,
-                        width: 50,
-                        height: 50,
+        child: StreamBuilder<List<Service>>(
+            stream: ServiceModel.getServices(_combinedUid),
+            builder: (context, snap) {
+              if (snap.hasData) {
+                List<Service> servicesList = snap.data!;
+                bool hasService = false;
+                Service? ser1;
+                servicesList.forEach((s) {
+                  if (!s.completed) {
+                    hasService = true;
+                    ser1 = s;
+                  }
+                });
+                return Scaffold(
+                  backgroundColor: MyColor.subtleBg,
+                  appBar: AppBar(
+                    elevation: 10,
+                    toolbarHeight: 60,
+                    backgroundColor: MyColor.primaryColor,
+                    leading: MaterialButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                Text("${widget.otherName}"),
-              ],
-            ),
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: StreamBuilder<List<Chat>>(
-                  stream: ChatModel.getChats(_combinedUid),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      chats = snapshot.data!
-                          .getRange(0, min(_currentMax, snapshot.data!.length))
-                          .toList();
-                      if (_currentMax >= snapshot.data!.length)
-                        _allChatsLoaded = true;
-                      if (chats.isNotEmpty) {
-                        return ListView.builder(
-                          controller: _scrollCtl,
-                          reverse: true,
-                          itemCount:
-                              min(chats.length, snapshot.data!.length) + 1,
-                          itemBuilder: (context, index) {
-                            if (index == chats.length)
-                              return _allChatsLoaded
-                                  ? Container()
-                                  : Center(
-                                      child: Container(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    );
-                            bool curUsersMsg =
-                                chats[index].uid == widget.user.uid;
-                            return ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth: _size!.width * 0.8,
+                    titleSpacing: 0,
+                    title: Row(
+                      children: [
+                        Container(
+                          height: 50,
+                          width: 50,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(100),
+                            color: Colors.white,
+                          ),
+                          child: ClipOval(
+                            child: Material(
+                              color: Colors.white,
+                              child: CachedNetworkImage(
+                                imageUrl: "${widget.otherPhotoUrl}",
+                                progressIndicatorBuilder:
+                                    (context, url, downloadProgress) =>
+                                        CircularProgressIndicator(
+                                  value: downloadProgress.progress,
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    Icon(Icons.error),
+                                fit: BoxFit.contain,
+                                width: 50,
+                                height: 50,
                               ),
-                              child: Padding(
-                                padding: EdgeInsets.all(8),
-                                child: Row(
-                                  mainAxisAlignment: curUsersMsg
-                                      ? MainAxisAlignment.end
-                                      : MainAxisAlignment.start,
-                                  children: [
-                                    Material(
-                                      elevation: 8,
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: curUsersMsg
-                                          ? MyColor.primaryColor
-                                          : Colors.white,
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: 4, horizontal: 12),
-                                        color: Colors.transparent,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Flexible(
+                          fit: FlexFit.tight,
+                          child: Text("${widget.otherName}"),
+                        ),
+                        if (UserModel.isFreelancer && !hasService)
+                          MaterialButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) => CreateService(
+                                  creatorUid: widget.user.uid,
+                                  combinedUid: _combinedUid,
+                                ),
+                              );
+                            },
+                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            color: Colors.white,
+                            textColor: MyColor.primaryColor,
+                            child: Text("Create service"),
+                          ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                  ),
+                  body: Column(
+                    children: [
+                      if (hasService)
+                        InkWell(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => ShowService(
+                                service: ser1!,
+                                loggedInUser: widget.user.uid,
+                                combinedUid: _combinedUid,
+                                otherName: widget.otherName,
+                              ),
+                            );
+                          },
+                          child: Material(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 15,
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Flexible(
                                         child: Column(
-                                          crossAxisAlignment: curUsersMsg
-                                              ? CrossAxisAlignment.end
-                                              : CrossAxisAlignment.start,
                                           children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 10),
-                                              child: Text(
-                                                "${chats[index].message}",
-                                                textAlign: curUsersMsg
-                                                    ? TextAlign.right
-                                                    : null,
-                                                style: TextStyle(
-                                                  color: curUsersMsg
-                                                      ? Colors.white
-                                                      : null,
-                                                  fontSize: 18,
-                                                ),
+                                            Text(
+                                              "Service name",
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            // Sent Time
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  "${_formatTimeTo12Hr(chats[index].timestamp.hour, chats[index].timestamp.minute)}",
-                                                  style: TextStyle(
-                                                    color: curUsersMsg
-                                                        ? null
-                                                        : Colors.grey,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ],
+                                            Text(
+                                              "${ser1!.name}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
+                                      Flexible(
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              "Price",
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              "${(ser1!.price < 0) ? 'Not set' : 'Rs.${ser1!.price}'}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 5),
+                                  Text(
+                                    "Click to see more",
+                                    style: TextStyle(
+                                      color: Colors.grey,
                                     ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      } else {
-                        return Center(
-                          child: Text(
-                            "No chats available. Say hi!",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        );
-                      }
-                    }
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  },
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.symmetric(vertical: 10),
-                padding: EdgeInsets.symmetric(horizontal: 5),
-                color: Colors.transparent,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: 150),
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Material(
-                          elevation: 8,
-                          borderRadius: BorderRadius.circular(30),
-                          child: TextField(
-                            controller: _messageCtl,
-                            style: TextStyle(fontSize: 18),
-                            maxLines: null,
-                            onChanged: (val) {
-                              if (val.trim().isEmpty) {
-                                setState(() {
-                                  _isMessageEmpty = true;
-                                });
-                              } else {
-                                setState(() {
-                                  _isMessageEmpty = false;
-                                });
-                              }
-                            },
-                            textInputAction: TextInputAction.newline,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.all(20),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(100),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(100),
-                                borderSide: BorderSide.none,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
+                      Expanded(
+                        child: StreamBuilder<List<Chat>>(
+                          stream: ChatModel.getChats(_combinedUid),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              chats = snapshot.data!
+                                  .getRange(0,
+                                      min(_currentMax, snapshot.data!.length))
+                                  .toList();
+                              if (_currentMax >= snapshot.data!.length)
+                                _allChatsLoaded = true;
+                              if (chats.isNotEmpty) {
+                                return ListView.builder(
+                                  controller: _scrollCtl,
+                                  reverse: true,
+                                  itemCount:
+                                      min(chats.length, snapshot.data!.length) +
+                                          1,
+                                  itemBuilder: (context, index) {
+                                    if (index == chats.length)
+                                      return _allChatsLoaded
+                                          ? Container()
+                                          : Center(
+                                              child: Container(
+                                                height: 20,
+                                                width: 20,
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                            );
+                                    bool curUsersMsg =
+                                        chats[index].uid == widget.user.uid;
+                                    return ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth: _size!.width * 0.8,
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(8),
+                                        child: Row(
+                                          mainAxisAlignment: curUsersMsg
+                                              ? MainAxisAlignment.end
+                                              : MainAxisAlignment.start,
+                                          children: [
+                                            Material(
+                                              elevation: 8,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: curUsersMsg
+                                                  ? MyColor.primaryColor
+                                                  : Colors.white,
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 4,
+                                                    horizontal: 12),
+                                                color: Colors.transparent,
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      curUsersMsg
+                                                          ? CrossAxisAlignment
+                                                              .end
+                                                          : CrossAxisAlignment
+                                                              .start,
+                                                  children: [
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                              .symmetric(
+                                                          vertical: 10),
+                                                      child: Text(
+                                                        "${chats[index].message}",
+                                                        textAlign: curUsersMsg
+                                                            ? TextAlign.right
+                                                            : null,
+                                                        style: TextStyle(
+                                                          color: curUsersMsg
+                                                              ? Colors.white
+                                                              : null,
+                                                          fontSize: 18,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    // Sent Time
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      children: [
+                                                        Text(
+                                                          "${_formatTimeTo12Hr(chats[index].timestamp.hour, chats[index].timestamp.minute)}",
+                                                          style: TextStyle(
+                                                            color: curUsersMsg
+                                                                ? null
+                                                                : Colors.grey,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              } else {
+                                return Center(
+                                  child: Text(
+                                    "No chats available. Say hi!",
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                );
+                              }
+                            }
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                        ),
                       ),
-                      SizedBox(width: 5),
-                      _isMessageEmpty
-                          ? SizedBox()
-                          : GestureDetector(
-                              onTap: _sendMessage,
-                              child: Container(
-                                width: 55,
-                                height: 55,
-                                padding: EdgeInsets.only(left: 3),
-                                decoration: BoxDecoration(
-                                  color: MyColor.primaryColor,
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                                child: Icon(
-                                  Icons.send,
-                                  color: Colors.white,
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: 10),
+                        padding: EdgeInsets.symmetric(horizontal: 5),
+                        color: Colors.transparent,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxHeight: 150),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Material(
+                                  elevation: 8,
+                                  borderRadius: BorderRadius.circular(30),
+                                  child: TextField(
+                                    controller: _messageCtl,
+                                    style: TextStyle(fontSize: 18),
+                                    maxLines: null,
+                                    onChanged: (val) {
+                                      if (val.trim().isEmpty) {
+                                        setState(() {
+                                          _isMessageEmpty = true;
+                                        });
+                                      } else {
+                                        setState(() {
+                                          _isMessageEmpty = false;
+                                        });
+                                      }
+                                    },
+                                    textInputAction: TextInputAction.newline,
+                                    decoration: InputDecoration(
+                                      contentPadding: EdgeInsets.all(20),
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                              SizedBox(width: 5),
+                              _isMessageEmpty
+                                  ? SizedBox()
+                                  : GestureDetector(
+                                      onTap: _sendMessage,
+                                      child: Container(
+                                        width: 55,
+                                        height: 55,
+                                        padding: EdgeInsets.only(left: 3),
+                                        decoration: BoxDecoration(
+                                          color: MyColor.primaryColor,
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                        ),
+                                        child: Icon(
+                                          Icons.send,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
+                );
+              } else
+                return Center(child: CircularProgressIndicator());
+            }),
       ),
     );
   }
@@ -351,18 +482,5 @@ class _ChatScreenState extends State<ChatScreen> {
       photoUrl2: widget.otherPhotoUrl,
     );
     return success;
-  }
-
-  String _getCombinedUid(String uid1, String uid2) {
-    int i = 0;
-    int minLen = min(uid1.length, uid2.length);
-    while (i < minLen) {
-      if (uid1.codeUnits[i] < uid2.codeUnits[i])
-        return uid1 + uid2;
-      else if (uid1.codeUnits[i] > uid2.codeUnits[i]) return uid2 + uid1;
-      i++;
-    }
-    if (uid1.length < uid2.length) return uid1 + uid2;
-    return uid2 + uid1;
   }
 }

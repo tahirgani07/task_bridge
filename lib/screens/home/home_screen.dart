@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<MyUser> _freelancersList = [];
   List<MyUser> _searchList = [];
   MyUser? _curUser;
-  bool loading = false;
+  bool loading = true;
 
   Size? _size;
 
@@ -43,9 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void didChangeDependencies() async {
-    // setState(() {
-    //   loading = true;
-    // });
     user = Provider.of<User?>(context);
     _curUser = await UserModel.getParticularUserDetails(user!.uid);
     _searchState = UserModel.isFreelancer ? _curUser!.state : "Maharashtra";
@@ -54,9 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
       state: _searchState,
       city: _searchCity,
     );
-    // setState(() {
-    //   loading = false;
-    // });
+    setState(() {
+      loading = false;
+    });
     super.didChangeDependencies();
   }
 

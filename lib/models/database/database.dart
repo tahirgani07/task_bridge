@@ -1,5 +1,9 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:task_bridge/models/quiz_model/quiz_model.dart';
+import 'package:task_bridge/models/user/my_user.dart';
 import 'package:task_bridge/models/user/user_model.dart';
 
 class Database {
@@ -35,6 +39,7 @@ class Database {
         "tags": [],
         "rating": 0,
         "workDone": 0,
+        "quizTaken": false,
       });
       return true;
     }
@@ -70,6 +75,7 @@ class Database {
       "tags": [],
       "rating": 0,
       "workDone": 0,
+      "quizTaken": false,
     }).onError((error, stackTrace) {
       print(error.toString());
       isSuccess = false;
@@ -181,6 +187,13 @@ class Database {
           .collection("chats")
           .doc(uid2)
           .get();
+
+      String combinedUid = UserModel.getCombinedUid(uid1, uid2);
+      if (!snap1.exists) {
+        await db.collection("all-chats").doc(combinedUid).set({
+          "combinedUid": combinedUid,
+        });
+      }
 
       if (!snap1.exists) {
         await db
@@ -307,6 +320,79 @@ class Database {
         .doc(bookmarkUserUid)
         .delete()
         .onError((error, stackTrace) => success = false);
+    return success;
+  }
+
+  Future<List<Question>> getRandomQuesions({
+    required List<String> tags,
+    required String language,
+    required int noOfQuestions,
+  }) async {
+    List<Question> res = [];
+    List<Question> allQs = [];
+
+    for (int i = 0; i < tags.length; i++) {
+      String tag = tags[i];
+      QuerySnapshot snap = await db
+          .collection("tags")
+          .doc(tag)
+          .collection("quiz-$language")
+          .get();
+      allQs.addAll(snap.docs.map((q) {
+        return Question(
+          question: q["question"],
+          op1: q["op1"],
+          op2: q["op2"],
+          op3: q["op3"],
+          op4: q["op4"],
+          answer: q["answer"],
+        );
+      }).toList());
+    }
+
+    if (allQs.length <= 0) return [];
+    List<int> generatedNos = [];
+    int range = allQs.length;
+    for (int i = 0; i < noOfQuestions; i++) {
+      int randomNo;
+      do {
+        randomNo = Random().nextInt(range);
+      } while (generatedNos.contains(randomNo));
+      generatedNos.add(randomNo);
+      res.add(allQs[randomNo]);
+    }
+    return res;
+  }
+
+  Future<bool> updateRating(String uid, double curRating,
+      {bool incrementWorkDone: false}) async {
+    bool success = true;
+    MyUser user = await UserModel.getParticularUserDetails(uid);
+    double newRating =
+        double.parse(((user.rating + curRating) / 2).toStringAsFixed(2));
+    if (user.rating == 0) {
+      newRating = curRating;
+    }
+    int workDone = incrementWorkDone ? user.workDone + 1 : user.workDone;
+    await db.collection("users").doc(uid).update({
+      "quizTaken": true,
+      "rating": newRating,
+      "workDone": workDone,
+    }).onError((error, stackTrace) => success = false);
+
+    if (success)
+      await db
+          .collection("states")
+          .doc(user.state)
+          .collection("city")
+          .doc(user.city)
+          .collection("freelancers")
+          .doc(uid)
+          .update({
+        "rating": newRating,
+        "workDone": workDone,
+      }).onError((error, stackTrace) => success = false);
+
     return success;
   }
 }

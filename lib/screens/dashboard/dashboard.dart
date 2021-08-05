@@ -13,6 +13,7 @@ import 'package:task_bridge/others/my_colors.dart';
 import 'package:task_bridge/screens/chats_screen/chat_screen.dart';
 import 'package:task_bridge/screens/dashboard/create_service_dialog.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_header.dart';
+import 'package:task_bridge/screens/quiz_screen/quiz_screen.dart';
 
 class Dashboard extends StatefulWidget {
   final String displayUsersUid;
@@ -158,85 +159,106 @@ class _DashboardState extends State<Dashboard> {
                           ),
                           backgroundColor: MyColor.primaryColor,
                         ),
+                        if (loggedInUsersDashboard && !(snap.data!.quizTaken))
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                              child: MaterialButton(
+                                onPressed: () {
+                                  _goToQuizScreen(snap.data!.tags.cast());
+                                },
+                                color: Color(0xff151515),
+                                textColor: Colors.white,
+                                height: 50,
+                                child: Text(
+                                  "Take a Quiz to give your self an initial rating",
+                                ),
+                              ),
+                            ),
+                          ),
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: EdgeInsets.all(20),
+                            padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
                             child: Material(
                               elevation: 5,
                               color: MyColor.primaryColor,
                               borderRadius: BorderRadius.circular(20),
                               child: Stack(
                                 children: [
-                                  Positioned(
-                                    right: 15,
-                                    top: 15,
-                                    child: StreamBuilder<List<String>>(
-                                      stream: UserModel.getBookmarks(
-                                          widget.loggedInUserUid),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasData) {
-                                          List<String> bookmarks =
-                                              snapshot.data!;
-                                          if (bookmarks.contains(
-                                              widget.displayUsersUid)) {
-                                            return InkWell(
-                                              onTap: () async {
-                                                bool success = await Database()
-                                                    .deleteBookmark(
-                                                  userUid:
-                                                      widget.loggedInUserUid,
-                                                  bookmarkUserUid:
-                                                      widget.displayUsersUid,
-                                                );
-                                                if (!success) {
-                                                  print(
-                                                      "Something went wrong while deleting the bookmark");
+                                  loggedInUsersDashboard
+                                      ? SizedBox()
+                                      : Positioned(
+                                          right: 15,
+                                          top: 15,
+                                          child: StreamBuilder<List<String>>(
+                                            stream: UserModel.getBookmarks(
+                                                widget.loggedInUserUid),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.hasData) {
+                                                List<String> bookmarks =
+                                                    snapshot.data!;
+                                                if (bookmarks.contains(
+                                                    widget.displayUsersUid)) {
+                                                  return InkWell(
+                                                    onTap: () async {
+                                                      bool success =
+                                                          await Database()
+                                                              .deleteBookmark(
+                                                        userUid: widget
+                                                            .loggedInUserUid,
+                                                        bookmarkUserUid: widget
+                                                            .displayUsersUid,
+                                                      );
+                                                      if (!success) {
+                                                        print(
+                                                            "Something went wrong while deleting the bookmark");
+                                                      } else {
+                                                        Flushbar(
+                                                                message:
+                                                                    "Bookmark deleted successfully")
+                                                            .show(context);
+                                                      }
+                                                    },
+                                                    child: Icon(
+                                                      Icons.bookmark_added,
+                                                      size: 35,
+                                                      color: Colors.white,
+                                                    ),
+                                                  );
                                                 } else {
-                                                  Flushbar(
-                                                          message:
-                                                              "Bookmark deleted successfully")
-                                                      .show(context);
+                                                  return InkWell(
+                                                    onTap: () async {
+                                                      bool success =
+                                                          await Database()
+                                                              .bookmarkUser(
+                                                        userUid: widget
+                                                            .loggedInUserUid,
+                                                        bookmarkUserUid: widget
+                                                            .displayUsersUid,
+                                                      );
+                                                      if (!success) {
+                                                        print(
+                                                            "Something went wrong while bookmarking");
+                                                      } else {
+                                                        Flushbar(
+                                                                message:
+                                                                    "Bookmark added successfully")
+                                                            .show(context);
+                                                      }
+                                                    },
+                                                    child: Icon(
+                                                      Icons.bookmark_add,
+                                                      size: 35,
+                                                      color: Colors.white,
+                                                    ),
+                                                  );
                                                 }
-                                              },
-                                              child: Icon(
-                                                Icons.bookmark_added,
-                                                size: 35,
-                                                color: Colors.white,
-                                              ),
-                                            );
-                                          } else {
-                                            return InkWell(
-                                              onTap: () async {
-                                                bool success = await Database()
-                                                    .bookmarkUser(
-                                                  userUid:
-                                                      widget.loggedInUserUid,
-                                                  bookmarkUserUid:
-                                                      widget.displayUsersUid,
-                                                );
-                                                if (!success) {
-                                                  print(
-                                                      "Something went wrong while bookmarking");
-                                                } else {
-                                                  Flushbar(
-                                                          message:
-                                                              "Bookmark added successfully")
-                                                      .show(context);
-                                                }
-                                              },
-                                              child: Icon(
-                                                Icons.bookmark_add,
-                                                size: 35,
-                                                color: Colors.white,
-                                              ),
-                                            );
-                                          }
-                                        } else {
-                                          return SizedBox();
-                                        }
-                                      },
-                                    ),
-                                  ),
+                                              } else {
+                                                return SizedBox();
+                                              }
+                                            },
+                                          ),
+                                        ),
                                   Padding(
                                     padding: EdgeInsets.all(20),
                                     child: Column(
@@ -574,6 +596,15 @@ class _DashboardState extends State<Dashboard> {
           //   ),
           // ),
         ],
+      ),
+    );
+  }
+
+  _goToQuizScreen(List<String> tags) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => QuizScreen(
+            uid: widget.loggedInUserUid, tags: tags, language: "english"),
       ),
     );
   }
