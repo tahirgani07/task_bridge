@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<MyUser> _freelancersList = [];
   List<MyUser> _searchList = [];
   MyUser? _curUser;
-  bool loading = true;
+  bool loading = false;
 
   Size? _size;
 
@@ -51,9 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       state: _searchState,
       city: _searchCity,
     );
-    setState(() {
-      loading = false;
-    });
+    loading = false;
     super.didChangeDependencies();
   }
 

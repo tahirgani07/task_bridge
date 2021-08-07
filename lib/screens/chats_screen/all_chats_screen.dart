@@ -112,45 +112,102 @@ class _AllChatsScreenState extends State<AllChatsScreen> {
                                       child: CircularProgressIndicator(),
                                     ),
                                   );
-                          return FutureBuilder<MyUser>(
-                              future: UserModel.getParticularUserDetails(
-                                  _chatUsersUid[index]),
-                              builder: (context, snap) {
-                                if (snap.hasData) {
-                                  MyUser curUser = snap.data!;
-                                  return ListTile(
-                                    onTap: () {
-                                      _goToChatScreen(
-                                        otherUid: curUser.uid,
-                                        otherName: curUser.name,
-                                        otherPhotoUrl: curUser.photoUrl,
-                                        otherEmail: curUser.email,
-                                      );
-                                    },
-                                    leading: ClipOval(
-                                      child: Material(
-                                        color: Colors.white,
-                                        child: CachedNetworkImage(
-                                          imageUrl: "${curUser.photoUrl}",
-                                          progressIndicatorBuilder: (context,
-                                                  url, downloadProgress) =>
-                                              CircularProgressIndicator(
-                                            value: downloadProgress.progress,
-                                          ),
-                                          errorWidget: (context, url, error) =>
-                                              Icon(Icons.error),
-                                          fit: BoxFit.contain,
-                                          width: 50,
-                                          height: 50,
-                                        ),
+                          return StreamBuilder<List<Chat>>(
+                              stream: ChatModel.getOneChat(
+                                UserModel.getCombinedUid(
+                                    _user!.uid, _chatUsersUid[index]),
+                              ),
+                              builder: (context, oneChatSnap) {
+                                // Check if the top chat is read or not
+                                if (oneChatSnap.hasData &&
+                                    oneChatSnap.data!.length > 0) {
+                                  // the last message sent should not be bolded if the last message was sent by the current user.
+                                  bool read = oneChatSnap.data![0].read ||
+                                      oneChatSnap.data![0].uid == _user!.uid;
+                                  String latestMsg =
+                                      oneChatSnap.data![0].message;
+                                  return FutureBuilder<MyUser>(
+                                      future:
+                                          UserModel.getParticularUserDetails(
+                                              _chatUsersUid[index]),
+                                      builder: (context, snap) {
+                                        if (snap.hasData) {
+                                          MyUser curUser = snap.data!;
+                                          return ListTile(
+                                            onTap: () {
+                                              _goToChatScreen(
+                                                otherUid: curUser.uid,
+                                                otherName: curUser.name,
+                                                otherPhotoUrl: curUser.photoUrl,
+                                                otherEmail: curUser.email,
+                                              );
+                                            },
+                                            leading: ClipOval(
+                                              child: Material(
+                                                color: Colors.white,
+                                                child: CachedNetworkImage(
+                                                  imageUrl:
+                                                      "${curUser.photoUrl}",
+                                                  progressIndicatorBuilder: (context,
+                                                          url,
+                                                          downloadProgress) =>
+                                                      CircularProgressIndicator(
+                                                    value: downloadProgress
+                                                        .progress,
+                                                  ),
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          Icon(Icons.error),
+                                                  fit: BoxFit.contain,
+                                                  width: 50,
+                                                  height: 50,
+                                                ),
+                                              ),
+                                            ),
+                                            title: Text(
+                                              "${curUser.name}",
+                                              style: TextStyle(
+                                                fontWeight: !read
+                                                    ? FontWeight.bold
+                                                    : null,
+                                              ),
+                                            ),
+                                            subtitle: Text(
+                                              "$latestMsg",
+                                              style: TextStyle(
+                                                fontWeight: !read
+                                                    ? FontWeight.bold
+                                                    : null,
+                                              ),
+                                            ),
+                                            trailing: !read
+                                                ? Container(
+                                                    height: 10,
+                                                    width: 10,
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: Colors.red,
+                                                    ),
+                                                  )
+                                                : SizedBox(),
+                                          );
+                                        } else {
+                                          return ListTile(
+                                            title: LinearProgressIndicator(),
+                                          );
+                                        }
+                                      });
+                                } else {
+                                  return Container(
+                                    height: 300,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Text(
+                                      "No Messages yet!",
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16,
                                       ),
                                     ),
-                                    title: Text("${curUser.name}"),
-                                    subtitle: Text("${curUser.email}"),
-                                  );
-                                } else {
-                                  return ListTile(
-                                    title: LinearProgressIndicator(),
                                   );
                                 }
                               });

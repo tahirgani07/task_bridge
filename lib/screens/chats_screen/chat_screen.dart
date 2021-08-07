@@ -248,6 +248,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   .getRange(0,
                                       min(_currentMax, snapshot.data!.length))
                                   .toList();
+                              // Make messages as read
+                              makeMessagesRead(_combinedUid, chats);
                               if (_currentMax >= snapshot.data!.length)
                                 _allChatsLoaded = true;
                               if (chats.isNotEmpty) {
@@ -390,6 +392,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     },
                                     textInputAction: TextInputAction.newline,
                                     decoration: InputDecoration(
+                                      hintText: "Write a message",
                                       contentPadding: EdgeInsets.all(20),
                                       border: OutlineInputBorder(
                                         borderRadius:
@@ -437,6 +440,16 @@ class _ChatScreenState extends State<ChatScreen> {
             }),
       ),
     );
+  }
+
+  Future makeMessagesRead(String combinedUid, List<Chat> chats) async {
+    chats.forEach((chat) async {
+      if (chat.uid == widget.user.uid) return;
+      await ChatModel.makeMessageRead(
+        combinedUid,
+        chat.timestamp.millisecondsSinceEpoch.toString(),
+      );
+    });
   }
 
   Future _sendMessage() async {

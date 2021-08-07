@@ -156,15 +156,17 @@ class Database {
     required String senderUid,
     required String message,
   }) async {
+    Timestamp timestamp = Timestamp.now();
     await db
         .collection("all-chats")
         .doc(combinedUid)
         .collection("chats")
-        .doc(Timestamp.now().millisecondsSinceEpoch.toString())
+        .doc(timestamp.millisecondsSinceEpoch.toString())
         .set({
       "uid": senderUid,
       "message": message,
-      "timestamp": Timestamp.now(),
+      "read": false,
+      "timestamp": timestamp,
     });
   }
 
