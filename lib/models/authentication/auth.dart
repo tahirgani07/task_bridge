@@ -135,6 +135,14 @@ class AuthService with ChangeNotifier {
     ];
   }
 
+  sendResetLink(String email) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (er) {
+      setMessage(er.toString());
+    }
+  }
+
   void setLoading(bool val) {
     _isLoading = val;
     notifyListeners();

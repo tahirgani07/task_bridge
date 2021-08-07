@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/authentication/auth.dart';
 import 'package:task_bridge/others/my_colors.dart';
+import 'package:task_bridge/screens/authentication/forgot_password_dialog.dart';
 import 'package:task_bridge/screens/authentication/sign_up.dart';
 import 'package:task_bridge/screens/select_profile_type/select_profile_type.dart';
 
@@ -78,7 +79,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           obscureText: true,
                           validator: _passwordValidator,
                         ),
-                        SizedBox(height: 30),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                                onPressed: () async {
+                                  await showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return ForgotPasswordDialog();
+                                      });
+                                },
+                                child: Text("Forgot password?")),
+                          ],
+                        ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: MaterialButton(
