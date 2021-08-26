@@ -148,6 +148,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 builder: (context) => CreateService(
                                   creatorUid: widget.user.uid,
                                   combinedUid: _combinedUid,
+                                  createdForUid: widget.otherUid,
                                 ),
                               );
                             },

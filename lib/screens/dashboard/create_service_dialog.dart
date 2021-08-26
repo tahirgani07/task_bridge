@@ -10,7 +10,12 @@ import 'package:task_bridge/others/my_colors.dart';
 class CreateService extends StatefulWidget {
   final String creatorUid;
   final String combinedUid;
-  CreateService({required this.creatorUid, required this.combinedUid});
+  final String createdForUid;
+  CreateService({
+    required this.creatorUid,
+    required this.combinedUid,
+    required this.createdForUid,
+  });
 
   @override
   _CreateServiceState createState() => _CreateServiceState();
@@ -179,6 +184,7 @@ class _CreateServiceState extends State<CreateService> {
       name: _nameCtl.text,
       desc: _descCtl.text,
       price: !_priceVariable ? double.parse(_priceCtl.text) : -1,
+      createdForUid: widget.createdForUid,
     );
     ShowAlert.dismissLoadingDialog(context);
 

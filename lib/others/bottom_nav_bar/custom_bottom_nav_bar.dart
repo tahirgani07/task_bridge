@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:task_bridge/models/bottom_nav_bar/bottom_nav_bar_model.dart';
+import 'package:task_bridge/others/my_colors.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   final bool isFreelancer;
@@ -12,7 +13,7 @@ class CustomBottomNavBar extends StatefulWidget {
 }
 
 class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
-  Color selectedColor = Color(0xff4EC4FE);
+  Color selectedColor = Color(0xffffffff);
   Color normalColor = Color(0xffA0A8B6);
   int currentIndex = 0;
   @override
@@ -25,7 +26,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       margin: EdgeInsets.fromLTRB(20, 0, 20, 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(17),
-        color: Color(0xff181818),
+        color: MyColor.primaryColor,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

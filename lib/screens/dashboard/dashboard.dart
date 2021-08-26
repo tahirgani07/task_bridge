@@ -11,6 +11,7 @@ import 'package:task_bridge/models/user/my_user.dart';
 import 'package:task_bridge/models/user/user_model.dart';
 import 'package:task_bridge/others/my_colors.dart';
 import 'package:task_bridge/screens/chats_screen/chat_screen.dart';
+import 'package:task_bridge/screens/chats_screen/show_service_dialog.dart';
 import 'package:task_bridge/screens/dashboard/create_service_dialog.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_header.dart';
 import 'package:task_bridge/screens/quiz_screen/quiz_screen.dart';
@@ -46,6 +47,7 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    Size _size = MediaQuery.of(context).size;
     return SafeArea(
       child: Stack(
         children: [
@@ -372,232 +374,230 @@ class _DashboardState extends State<Dashboard> {
                 }),
           ),
           // SERVICES
-          // Positioned.fill(
-          //   child: DraggableScrollableSheet(
-          //     initialChildSize: 0.24,
-          //     minChildSize: 0.23,
-          //     maxChildSize: 1,
-          //     builder: (context, scrollctl) {
-          //       return Material(
-          //         color: Colors.transparent,
-          //         elevation: 20,
-          //         child: Container(
-          //           margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
-          //           decoration: BoxDecoration(
-          //             color: Colors.white,
-          //             borderRadius: BorderRadius.circular(20),
-          //           ),
-          //           child: CustomScrollView(
-          //             controller: scrollctl,
-          //             slivers: [
-          //               SliverAppBar(
-          //                 shape: RoundedRectangleBorder(
-          //                   borderRadius: BorderRadius.only(
-          //                     topLeft: Radius.circular(20),
-          //                     topRight: Radius.circular(20),
-          //                   ),
-          //                 ),
-          //                 backgroundColor: Colors.white,
-          //                 floating: true,
-          //                 title: Container(
-          //                   decoration: BoxDecoration(
-          //                     borderRadius: BorderRadius.circular(40),
-          //                   ),
-          //                   child: Row(
-          //                     mainAxisAlignment: MainAxisAlignment.center,
-          //                     children: [
-          //                       Text(
-          //                         "Services",
-          //                         style: TextStyle(
-          //                           fontSize: 24,
-          //                           color: MyColor.primaryColor,
-          //                           fontWeight: FontWeight.w700,
-          //                         ),
-          //                         maxLines: 1,
-          //                       ),
-          //                       SizedBox(width: 10),
-          //                       MaterialButton(
-          //                         shape: RoundedRectangleBorder(
-          //                           borderRadius: BorderRadius.circular(100),
-          //                         ),
-          //                         padding: EdgeInsets.all(5),
-          //                         minWidth: 20,
-          //                         height: 20,
-          //                         color: MyColor.primaryColor,
-          //                         onPressed: () async {
-          //                           await showDialog(
-          //                             barrierDismissible: false,
-          //                             context: context,
-          //                             builder: (context) {
-          //                               return CreateService(widget.showUser!.uid);
-          //                             },
-          //                           );
-          //                         },
-          //                         child: Icon(
-          //                           Icons.add,
-          //                           color: Colors.white,
-          //                         ),
-          //                       ),
-          //                     ],
-          //                   ),
-          //                 ),
-          //               ),
-          //               SliverToBoxAdapter(
-          //                 child: StreamBuilder<List<Service>>(
-          //                     stream: ServiceModel.getServices(widget.showUser!.uid),
-          //                     builder: (context, snapshot) {
-          //                       if (snapshot.hasData &&
-          //                           snapshot.data!.length > 0) {
-          //                         return Padding(
-          //                           padding: EdgeInsets.all(15.0),
-          //                           child: Column(
-          //                             children: List.generate(
-          //                               snapshot.data!.length,
-          //                               (ind) {
-          //                                 Service curService =
-          //                                     snapshot.data![ind];
-          //                                 return Padding(
-          //                                   padding:
-          //                                       EdgeInsets.only(bottom: 10),
-          //                                   child: Material(
-          //                                     color: curService.active
-          //                                         ? Colors.white
-          //                                         : Colors.grey[200],
-          //                                     elevation: 5,
-          //                                     borderRadius:
-          //                                         BorderRadius.circular(20),
-          //                                     child: InkWell(
-          //                                       borderRadius:
-          //                                           BorderRadius.circular(20),
-          //                                       onTap: !curService.active
-          //                                           ? null
-          //                                           : () async {
-          //                                               print("WORKS");
-          //                                             },
-          //                                       child: Padding(
-          //                                         padding: EdgeInsets.all(20),
-          //                                         child: Column(
-          //                                           children: [
-          //                                             Row(
-          //                                               mainAxisAlignment:
-          //                                                   MainAxisAlignment
-          //                                                       .spaceBetween,
-          //                                               children: [
-          //                                                 Flexible(
-          //                                                   child: Container(
-          //                                                     width:
-          //                                                         _size.width /
-          //                                                             2,
-          //                                                     child: Text(
-          //                                                       "${curService.name}",
-          //                                                       style:
-          //                                                           TextStyle(
-          //                                                         fontSize: 20,
-          //                                                         fontWeight:
-          //                                                             FontWeight
-          //                                                                 .bold,
-          //                                                       ),
-          //                                                     ),
-          //                                                   ),
-          //                                                 ),
-          //                                                 Switch(
-          //                                                   value: curService
-          //                                                       .active,
-          //                                                   onChanged:
-          //                                                       (val) async {
-          //                                                     await ServiceModel
-          //                                                         .changeServiceState(
-          //                                                       widget.showUser!.uid,
-          //                                                       curService
-          //                                                           .timestamp
-          //                                                           .millisecondsSinceEpoch
-          //                                                           .toString(),
-          //                                                       val,
-          //                                                     );
-          //                                                   },
-          //                                                 ),
-          //                                               ],
-          //                                             ),
-          //                                             Row(
-          //                                               mainAxisAlignment:
-          //                                                   MainAxisAlignment
-          //                                                       .spaceBetween,
-          //                                               children: [
-          //                                                 Flexible(
-          //                                                   flex: 5,
-          //                                                   child: Container(
-          //                                                     child: Text(
-          //                                                       "${curService.desc.substring(0, min(descMaxDisplayLength, curService.desc.length))}${curService.desc.length > descMaxDisplayLength ? '....' : ''}",
-          //                                                       style:
-          //                                                           TextStyle(
-          //                                                         fontSize: 15,
-          //                                                         fontWeight:
-          //                                                             FontWeight
-          //                                                                 .w500,
-          //                                                         color: Colors
-          //                                                                 .grey[
-          //                                                             600],
-          //                                                       ),
-          //                                                     ),
-          //                                                   ),
-          //                                                 ),
-          //                                                 Flexible(
-          //                                                   flex: 3,
-          //                                                   child: Text(
-          //                                                     "Rs.\n${curService.price.toStringAsFixed(2)}",
-          //                                                     textAlign:
-          //                                                         TextAlign
-          //                                                             .center,
-          //                                                     style: TextStyle(
-          //                                                       fontSize: 20,
-          //                                                       fontWeight:
-          //                                                           FontWeight
-          //                                                               .bold,
-          //                                                     ),
-          //                                                   ),
-          //                                                 ),
-          //                                               ],
-          //                                             ),
-          //                                           ],
-          //                                         ),
-          //                                       ),
-          //                                     ),
-          //                                   ),
-          //                                 );
-          //                               },
-          //                             ),
-          //                           ),
-          //                         );
-          //                       }
-          //                       return Container(
-          //                         height: _size.height / 2,
-          //                         child: Center(
-          //                           child: Text(
-          //                             "No Services Added yet!",
-          //                             textAlign: TextAlign.center,
-          //                             style: TextStyle(
-          //                               fontSize: 20,
-          //                               color: Colors.grey,
-          //                               fontWeight: FontWeight.w500,
-          //                             ),
-          //                           ),
-          //                         ),
-          //                       );
-          //                     }),
-          //               ),
-          //               SliverToBoxAdapter(
-          //                 child: SizedBox(height: 60),
-          //               ),
-          //             ],
-          //           ),
-          //         ),
-          //       );
-          //     },
-          //   ),
-          // ),
+          loggedInUsersDashboard
+              ? Positioned.fill(
+                  child: DraggableScrollableSheet(
+                    initialChildSize: 0.24,
+                    minChildSize: 0.23,
+                    maxChildSize: 1,
+                    builder: (context, scrollctl) {
+                      return Material(
+                        color: Colors.transparent,
+                        elevation: 20,
+                        child: Container(
+                          margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: CustomScrollView(
+                            controller: scrollctl,
+                            slivers: [
+                              SliverAppBar(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(20),
+                                    topRight: Radius.circular(20),
+                                  ),
+                                ),
+                                backgroundColor: Colors.white,
+                                floating: true,
+                                title: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(40),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Services",
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          color: MyColor.primaryColor,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                        maxLines: 1,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SliverToBoxAdapter(
+                                child: FutureBuilder<List<Service>>(
+                                  future:
+                                      ServiceModel.getParticularUsersServices(
+                                          widget.loggedInUserUid),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      if (snapshot.data!.length > 0)
+                                        return Padding(
+                                          padding: EdgeInsets.all(15.0),
+                                          child: Column(
+                                            children: List.generate(
+                                              snapshot.data!.length,
+                                              (ind) {
+                                                Service curService =
+                                                    snapshot.data![ind];
+                                                return Padding(
+                                                  padding: EdgeInsets.only(
+                                                      bottom: 10),
+                                                  child: Material(
+                                                    elevation: 5,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                    child: InkWell(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                      onTap: () {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) =>
+                                                              ShowService(
+                                                            service: curService,
+                                                            loggedInUser:
+                                                                _loggedInUser!
+                                                                    .uid,
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Padding(
+                                                        padding:
+                                                            EdgeInsets.all(20),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Row(
+                                                              children: [
+                                                                Flexible(
+                                                                  child: Text(
+                                                                    "${curService.name}",
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontSize:
+                                                                          20,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                    width: 5),
+                                                                Container(
+                                                                  height: 15,
+                                                                  width: 15,
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: _getServiceBoxColor(
+                                                                        curService),
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .spaceBetween,
+                                                              children: [
+                                                                Flexible(
+                                                                  flex: 5,
+                                                                  child:
+                                                                      Container(
+                                                                    child: Text(
+                                                                      "${curService.desc.substring(0, min(descMaxDisplayLength, curService.desc.length))}${curService.desc.length > descMaxDisplayLength ? '....' : ''}",
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            15,
+                                                                        fontWeight:
+                                                                            FontWeight.w500,
+                                                                        color: Colors
+                                                                            .grey[600],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Flexible(
+                                                                  flex: 3,
+                                                                  child: Text(
+                                                                    "${curService.price >= 0 ? 'Rs.\n${curService.price.toStringAsFixed(2)}' : 'Variable Price'}",
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .center,
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontSize:
+                                                                          18,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      else
+                                        return Container(
+                                          height: _size.height / 2,
+                                          child: Center(
+                                            child: Text(
+                                              "No Services Added yet!",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.grey,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                    }
+                                    return Container(
+                                      height: 40,
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              SliverToBoxAdapter(
+                                child: SizedBox(height: 60),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                )
+              : SizedBox(),
         ],
       ),
     );
+  }
+
+  _getServiceBoxColor(Service s) {
+    if (s.active && !s.completed) return Colors.orangeAccent[200];
+    if (s.active && s.completed) return Colors.greenAccent[200];
+    if (!s.active && !s.completed) return Colors.yellow[200];
+    return Colors.redAccent[200];
   }
 
   _goToQuizScreen(List<String> tags) {

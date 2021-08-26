@@ -4,11 +4,13 @@ import 'package:task_bridge/models/database/database.dart';
 class ServiceModel {
   static Future<String> sendService({
     required String creatorUid,
+    required String createdForUid,
     required String combinedUid,
     required String name,
     required String desc,
     required double price,
   }) async {
+    bool success = true;
     String er = "";
     Timestamp today = Timestamp.now();
     Database()
@@ -25,9 +27,26 @@ class ServiceModel {
       "active": false,
       "completed": false,
       "timestamp": today,
+      "createdForUid": createdForUid,
     }).onError((error, stackTrace) {
+      success = false;
       er = error.toString();
     });
+
+    if (success) {
+      Database()
+          .db
+          .collection("users")
+          .doc(creatorUid)
+          .collection("services")
+          .doc(today.millisecondsSinceEpoch.toString())
+          .set({
+        "combinedUid": combinedUid,
+        "docId": today.millisecondsSinceEpoch.toString(),
+      }).onError((error, stackTrace) {
+        er = error.toString();
+      });
+    }
 
     return er;
   }
@@ -42,6 +61,7 @@ class ServiceModel {
         active: doc["active"],
         timestamp: doc["timestamp"].toDate(),
         completed: doc["completed"],
+        createdForUid: doc["createdForUid"],
       );
     }).toList();
   }
@@ -111,6 +131,38 @@ class ServiceModel {
     return success;
   }
 
+  static Future<List<Service>> getParticularUsersServices(String uid) async {
+    QuerySnapshot snap = await Database()
+        .db
+        .collection("users")
+        .doc(uid)
+        .collection("services")
+        .get();
+    List<Service> serviceList = [];
+
+    for (int i = 0; i < snap.docs.length; i++) {
+      DocumentSnapshot serviceDoc = await Database()
+          .db
+          .collection("all-chats")
+          .doc(snap.docs[i]["combinedUid"])
+          .collection("services")
+          .doc(snap.docs[i]["docId"])
+          .get();
+
+      serviceList.add(Service(
+        creatorUid: serviceDoc["creatorUid"],
+        name: serviceDoc["name"],
+        desc: serviceDoc["desc"],
+        price: serviceDoc["price"].toDouble(),
+        active: serviceDoc["active"],
+        timestamp: serviceDoc["timestamp"].toDate(),
+        completed: serviceDoc["completed"],
+        createdForUid: serviceDoc["createdForUid"],
+      ));
+    }
+    return serviceList;
+  }
+
   // static List<Service> _convertSnapshots(QuerySnapshot snapshot) {
   //   return snapshot.docs.map((doc) {
   //     return Service(
@@ -178,6 +230,7 @@ class ServiceModel {
 
 class Service {
   final String creatorUid;
+  final String createdForUid;
   final String name;
   final String desc;
   final double price;
@@ -187,6 +240,7 @@ class Service {
 
   Service({
     required this.creatorUid,
+    required this.createdForUid,
     required this.name,
     required this.desc,
     required this.price,
