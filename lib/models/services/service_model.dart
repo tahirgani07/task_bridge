@@ -95,23 +95,23 @@ class ServiceModel {
     return success;
   }
 
-  static Future<bool> serviceCompleted(
-      String combinedUid, Service service) async {
-    bool success = true;
-    Database()
-        .db
-        .collection("all-chats")
-        .doc(combinedUid)
-        .collection("services")
-        .doc(service.timestamp.millisecondsSinceEpoch.toString())
-        .delete()
-        .onError((error, stackTrace) {
-      print(error.toString());
-      success = false;
-    });
+  // static Future<bool> serviceCompleted(
+  //     String combinedUid, Service service) async {
+  //   bool success = true;
+  //   Database()
+  //       .db
+  //       .collection("all-chats")
+  //       .doc(combinedUid)
+  //       .collection("services")
+  //       .doc(service.timestamp.millisecondsSinceEpoch.toString())
+  //       .delete()
+  //       .onError((error, stackTrace) {
+  //     print(error.toString());
+  //     success = false;
+  //   });
 
-    return success;
-  }
+  //   return success;
+  // }
 
   static Future<bool> deleteService(String combinedUid, Service service) async {
     bool success = true;

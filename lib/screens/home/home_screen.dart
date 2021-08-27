@@ -245,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          width: _size!.width / 2,
+                          width: _size!.width / 2.5,
                           child: Wrap(
                               children: List.generate(
                             cur.tags.length,

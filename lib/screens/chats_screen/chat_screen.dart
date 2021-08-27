@@ -309,16 +309,24 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       padding: const EdgeInsets
                                                               .symmetric(
                                                           vertical: 10),
-                                                      child: Text(
-                                                        "${chats[index].message}",
-                                                        textAlign: curUsersMsg
-                                                            ? TextAlign.right
-                                                            : null,
-                                                        style: TextStyle(
-                                                          color: curUsersMsg
-                                                              ? Colors.white
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                          maxWidth:
+                                                              _size!.width *
+                                                                  0.8,
+                                                        ),
+                                                        child: Text(
+                                                          "${chats[index].message}",
+                                                          textAlign: curUsersMsg
+                                                              ? TextAlign.right
                                                               : null,
-                                                          fontSize: 18,
+                                                          style: TextStyle(
+                                                            color: curUsersMsg
+                                                                ? Colors.white
+                                                                : null,
+                                                            fontSize: 18,
+                                                          ),
                                                         ),
                                                       ),
                                                     ),

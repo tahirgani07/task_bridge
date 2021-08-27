@@ -179,6 +179,8 @@ class _AllChatsScreenState extends State<AllChatsScreen> {
                                                     ? FontWeight.bold
                                                     : null,
                                               ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                             trailing: !read
                                                 ? Container(

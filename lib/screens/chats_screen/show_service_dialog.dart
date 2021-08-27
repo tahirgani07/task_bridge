@@ -181,7 +181,7 @@ class _ShowServiceState extends State<ShowService> {
 
   _serviceComplete({bool rejected: false}) async {
     ShowAlert.showLoadingDialog(context);
-    await ServiceModel.serviceCompleted(widget.combinedUid!, widget.service);
+    await ServiceModel.deleteService(widget.combinedUid!, widget.service);
     ShowAlert.dismissLoadingDialog(context);
     Navigator.of(context).pop();
     Flushbar(
