@@ -15,6 +15,7 @@ import 'package:task_bridge/screens/chats_screen/show_service_dialog.dart';
 import 'package:task_bridge/screens/dashboard/create_service_dialog.dart';
 import 'package:task_bridge/screens/profile_dialog/profile_header.dart';
 import 'package:task_bridge/screens/quiz_screen/quiz_screen.dart';
+import 'package:task_bridge/screens/quiz_screen/select_quiz_language.dart';
 
 class Dashboard extends StatefulWidget {
   final String displayUsersUid;
@@ -600,11 +601,12 @@ class _DashboardState extends State<Dashboard> {
     return Colors.redAccent[200];
   }
 
-  _goToQuizScreen(List<String> tags) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => QuizScreen(
-            uid: widget.loggedInUserUid, tags: tags, language: "english"),
+  _goToQuizScreen(List<String> tags) async {
+    await showDialog(
+      context: context,
+      builder: (context) => SelectQuizLanguage(
+        loggedInUserUid: widget.loggedInUserUid,
+        tags: tags,
       ),
     );
   }
